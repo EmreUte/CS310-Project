@@ -1,6 +1,6 @@
 # CS310-Project
 
-### MyRide – Personalized Taxi Matching App
+## MyRide – Personalized Taxi Matching App
 ### Group Members: 
 Cenker Şahin (32023), Cem Aydemir (28962), Mehmet Berkay Çatak (32229), Emre Üte (32642), Hıdır Can Çağlar (32174)
 ### Application Name: 
