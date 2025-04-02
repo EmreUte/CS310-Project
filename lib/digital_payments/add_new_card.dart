@@ -4,9 +4,14 @@ import '../utils/colors.dart';
 import '../utils/dimensions.dart';
 import '../utils/styles.dart';
 
-class AddNewCard extends StatelessWidget {
+class AddNewCard extends StatefulWidget {
   const AddNewCard({super.key});
 
+  @override
+  State<AddNewCard> createState() => _AddNewCardState();
+}
+
+class _AddNewCardState extends State<AddNewCard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
