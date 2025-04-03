@@ -14,6 +14,12 @@ final kHeadingText = GoogleFonts.roboto(
     fontSize: 24.0
 );
 
+final kButtonText = GoogleFonts.roboto(
+    color: Colors.white,
+    fontWeight: FontWeight.w500,
+    fontSize: 20.0
+);
+
 final kFillerText = GoogleFonts.roboto(
     color: Colors.black,
     fontWeight: FontWeight.w400,

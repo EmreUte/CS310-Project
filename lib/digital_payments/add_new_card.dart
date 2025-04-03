@@ -12,6 +12,7 @@ class AddNewCard extends StatefulWidget {
 }
 
 class _AddNewCardState extends State<AddNewCard> {
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,34 +23,27 @@ class _AddNewCardState extends State<AddNewCard> {
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryText),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: const Text(
+        title: Text(
             'Enter Card Info',
-            style: TextStyle(
-              color: AppColors.primaryText,
-              fontSize: 20,
-            ),
+            style: kAppBarText,
           ),
         ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 26),
+      body: Padding(
+          padding: EdgeInsets.fromLTRB(30, 60, 30, 80),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 40),
+              SizedBox(height: 40),
               _buildInputField(
                 label: 'Card Name',
                 hint: 'Enter card holder name',
               ),
-              const SizedBox(height: 22),
+              SizedBox(height: 22),
               _buildInputField(
                 label: 'Card Number',
                 hint: 'Enter card number',
               ),
-              const SizedBox(height: 22),
+              SizedBox(height: 22),
               Row(
                 children: [
                   Expanded(
@@ -58,7 +52,7 @@ class _AddNewCardState extends State<AddNewCard> {
                       hint: 'MM',
                     ),
                   ),
-                  const SizedBox(width: 26),
+                  SizedBox(width: 26),
                   Expanded(
                     child: _buildInputField(
                       label: 'Year',
@@ -67,34 +61,34 @@ class _AddNewCardState extends State<AddNewCard> {
                   ),
                 ],
               ),
-              const SizedBox(height: 22),
+              SizedBox(height: 22),
               _buildTermsAndConditions(),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF556291),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(100),
+              SizedBox(height: 40),
+              Center(
+                child: SizedBox(
+                  width: 222,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // I will define function here after database implementation
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.buttonBackground,
+                      padding: EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    'Pay Now',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
+                    child: Text(
+                      'Add Card',
+                      style: kButtonText,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 40),
+              SizedBox(height: 40),
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -107,22 +101,19 @@ class _AddNewCardState extends State<AddNewCard> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+          style: kFillerText,
           ),
-        ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         TextField(
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
-            fillColor: const Color(0xFFD9D9D9),
+            fillColor: AppColors.fillBox,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
-            contentPadding: const EdgeInsets.symmetric(
+            contentPadding: EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 12,
             ),
@@ -132,13 +123,21 @@ class _AddNewCardState extends State<AddNewCard> {
     );
   }
 
+  bool tickVal = false;
+  void addTick() {
+    setState(() {
+      tickVal = !tickVal;
+    });
+  }
   Widget _buildTermsAndConditions() {
     return Row(
       children: [
         Checkbox(
-          value: false,
-          onChanged: (value) {},
-          activeColor: const Color(0xFF655591),
+          value: tickVal,
+          onChanged: (value) {
+            addTick();
+          },
+          activeColor: AppColors.buttonBackground,
         ),
         const Text(
           'I agree to the Terms & Conditions',
