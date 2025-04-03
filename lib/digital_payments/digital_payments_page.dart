@@ -14,6 +14,7 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryText),
@@ -21,30 +22,95 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
         ),
         title: Text(
           "Digital Payments",
-          style: kHeadingTextStyle,
+          style: kAppBarText,
         ),
       ),
       body: Padding(
-        padding: EdgeInsets.fromLTRB(20, 80, 20, 0),
+        padding: EdgeInsets.fromLTRB(30, 80, 30, 0),
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget> [
-        Container(
-          width: double.infinity, // Makes it span the available width
-            height: 100, // Adjust height for "long box" feel
-            decoration: BoxDecoration(
-              color: AppColors.fillBox, // Using a color from your utils
-              borderRadius: BorderRadius.circular(20), // Rounded corners
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "My Cards",
+                  style: kHeadingText,
+                ),
+                SizedBox(width: 8), // Add some spacing between text and icon
+                Icon(
+                  Icons.edit,
+                  color: Colors.black, // Match your app's color scheme
+                  size: 24, // Adjust size as needed
+                ),
+              ]
             ),
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(15, 15, 0, 0),
-                child: Text(
-                  "Cenker Şahin",
-                  style: TextStyle(
-                    color: AppColors.secondaryText, // Contrast with background
-                    fontSize: 18,
-                    fontWeight: FontWeight.normal,
-                  ),
+            SizedBox(height: 10),
+            Container(
+              width: 366,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.fillBox,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(10, 6, 0, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image.asset(
+                      'assets/mastercard_icon.png', // Path to your Mastercard icon
+                      width: 61, // Adjust size as needed
+                      height: 61,
+                      fit: BoxFit.contain,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 22),
+            Container(
+              width: 366,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.fillBox,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(10, 6, 0, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image.asset(
+                      'assets/mastercard_icon.png', // Path to your Mastercard icon
+                      width: 61, // Adjust size as needed
+                      height: 61,
+                      fit: BoxFit.contain,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 22),
+            Container(
+              width: 366,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.fillBox,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(10, 6, 0, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image.asset(
+                      'assets/visa_icon.png', // Path to your Mastercard icon
+                      width: 61, // Adjust size as needed
+                      height: 61,
+                      fit: BoxFit.contain,
+                    ),
+                  ],
                 ),
               ),
             ),
