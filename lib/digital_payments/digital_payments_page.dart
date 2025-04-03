@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-
 import '../utils/colors.dart';
 import '../utils/dimensions.dart';
 import '../utils/styles.dart';
+
+import 'add_new_card.dart';
+import 'components/credit_card.dart';
 
 class CreditCardScreen extends StatefulWidget {
   const CreditCardScreen({super.key});
@@ -12,10 +14,29 @@ class CreditCardScreen extends StatefulWidget {
 }
 
 class _CreditCardScreenState extends State<CreditCardScreen> {
+  bool inEdit = false;
+  List<CreditCard> cards = [
+    CreditCard(name: "Cenker Şahin Main Card", number: "12491************43", type: true),
+    CreditCard(name: "Emre Üte Main Card", number: "42813************71", type: true),
+    CreditCard(name: "Emre Üte Visa", number: "14834************14", type: false),
+  ];
+
+  void editMode() {
+    setState(() {
+      inEdit = !inEdit;
+    });
+  }
+  void deleteCard (CreditCard card) {
+    setState(() {
+      cards.remove(card);
+    });
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryText),
@@ -38,153 +59,57 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
                   "My Cards",
                   style: kHeadingText,
                 ),
-                Icon(
-                  Icons.edit,
-                  color: Colors.black, // Match your app's color scheme
-                  size: 24, // Adjust size as needed
+                IconButton(
+                  onPressed: () {editMode();},
+                  icon: Icon(
+                    Icons.edit,
+                    color: Colors.black,
+                    size: 24,
+                  ),
                 ),
-              ]
+              ],
             ),
             SizedBox(height: 10),
-            Container(
-              width: 366,
-              height: 72,
-              decoration: BoxDecoration(
-                color: AppColors.fillBox,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/payment_related/mastercard_icon.png',
-                      width: 61, // Adjust size as needed
-                      height: 61,
-                      fit: BoxFit.contain,
-                    ),
-                    SizedBox(width: 30),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Cenker Şahin Main Card",
-                          style: kFillerText,
-                        ),
-                        Text(
-                          "12491************43",
-                          style: kFillerTextSmall,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 22),
-            Container(
-              width: 366,
-              height: 72,
-              decoration: BoxDecoration(
-                color: AppColors.fillBox,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/payment_related/mastercard_icon.png',
-                      width: 61, // Adjust size as needed
-                      height: 61,
-                      fit: BoxFit.contain,
-                    ),
-                    SizedBox(width: 30),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Emre Üte Main Card",
-                          style: kFillerText,
-                        ),
-                        Text(
-                          "42813************71",
-                          style: kFillerTextSmall,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 22),
-            Container(
-              width: 366,
-              height: 72,
-              decoration: BoxDecoration(
-                color: AppColors.fillBox,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/payment_related/visa_icon.png',
-                      width: 61, // Adjust size as needed
-                      height: 61,
-                      fit: BoxFit.contain,
-                    ),
-                    SizedBox(width: 30),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Emre Üte Visa",
-                          style: kFillerText,
-                        ),
-                        Text(
-                          "14834************14",
-                          style: kFillerTextSmall,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+            Column(
+              children: cards.map((card) => CreditCardBlock(
+                card: card,
+                mode: inEdit,
+                delete: () {
+                  deleteCard(card);
+                  },
+                )
+              ).toList(),
             ),
             SizedBox(height: 20),
             Row(
-                children: [
-                  Icon(
-                    Icons.add,
-                    color: Colors.black, // Match your app's color scheme
-                    size: 24, // Adjust size as needed
+              children: [
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => AddNewCard()),
+                      );
+                    },
+                    icon: Icon(
+                      Icons.add,
+                      color: Colors.black,
+                      size: 28,
+                    ),
+                    label: Text(
+                      "Add a new card",
+                      style: kHeadingText,
+                    ),
                   ),
-                  SizedBox(width: 20), // Add some spacing between text and icon
-                  Text(
-                    "Add a new card",
-                    style: kHeadingText,
-                  ),
-                ]
+              ],
             ),
-
-
-
-            Spacer(), // Pushes "Other Methods" to the bottom
+            Spacer(),
             Row(
-                children: [
-                  Text(
-                    "Other Methods",
-                    style: kHeadingText,
-                  ),
-                ]
+              children: [
+                Text(
+                  "Other Methods",
+                  style: kHeadingText,
+                ),
+              ],
             ),
             SizedBox(height: 10),
             Container(
@@ -201,24 +126,22 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
                   children: [
                     Image.asset(
                       'assets/payment_related/apple_pay_icon.png',
-                      width: 93, // Adjust size as needed
+                      width: 93,
                       height: 62,
                       fit: BoxFit.contain,
                     ),
                     Image.asset(
                       'assets/payment_related/paypal_icon.png',
-                      width: 135, // Adjust size as needed
+                      width: 135,
                       height: 44,
                       fit: BoxFit.contain,
-                    )
+                    ),
                   ],
                 ),
               ),
             ),
           ],
-
         ),
-
       ),
     );
   }

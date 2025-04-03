@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'digital_payments/add_new_card.dart';
 import 'digital_payments/digital_payments_page.dart';
-import 'utils/colors.dart';
+import 'utils/colors.dart
 
 void main() {
   runApp(MaterialApp(
