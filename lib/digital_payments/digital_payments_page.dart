@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../utils/colors.dart';
 import '../utils/dimensions.dart';
 import '../utils/styles.dart';
@@ -26,7 +27,7 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
         ),
       ),
       body: Padding(
-        padding: EdgeInsets.fromLTRB(30, 80, 30, 0),
+        padding: EdgeInsets.fromLTRB(30, 60, 30, 80),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -37,7 +38,6 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
                   "My Cards",
                   style: kHeadingText,
                 ),
-                SizedBox(width: 8), // Add some spacing between text and icon
                 Icon(
                   Icons.edit,
                   color: Colors.black, // Match your app's color scheme
@@ -51,18 +51,33 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
               height: 72,
               decoration: BoxDecoration(
                 color: AppColors.fillBox,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(
-                padding: EdgeInsets.fromLTRB(10, 6, 0, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Image.asset(
-                      'assets/mastercard_icon.png', // Path to your Mastercard icon
+                      'assets/payment_related/mastercard_icon.png',
                       width: 61, // Adjust size as needed
                       height: 61,
                       fit: BoxFit.contain,
+                    ),
+                    SizedBox(width: 30),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Cenker Şahin Main Card",
+                          style: kFillerText,
+                        ),
+                        Text(
+                          "12491************43",
+                          style: kFillerTextSmall,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -74,18 +89,33 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
               height: 72,
               decoration: BoxDecoration(
                 color: AppColors.fillBox,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(
-                padding: EdgeInsets.fromLTRB(10, 6, 0, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Image.asset(
-                      'assets/mastercard_icon.png', // Path to your Mastercard icon
+                      'assets/payment_related/mastercard_icon.png',
                       width: 61, // Adjust size as needed
                       height: 61,
                       fit: BoxFit.contain,
+                    ),
+                    SizedBox(width: 30),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Emre Üte Main Card",
+                          style: kFillerText,
+                        ),
+                        Text(
+                          "42813************71",
+                          style: kFillerTextSmall,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -97,25 +127,98 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
               height: 72,
               decoration: BoxDecoration(
                 color: AppColors.fillBox,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(
-                padding: EdgeInsets.fromLTRB(10, 6, 0, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Image.asset(
-                      'assets/visa_icon.png', // Path to your Mastercard icon
+                      'assets/payment_related/visa_icon.png',
                       width: 61, // Adjust size as needed
                       height: 61,
                       fit: BoxFit.contain,
                     ),
+                    SizedBox(width: 30),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Emre Üte Visa",
+                          style: kFillerText,
+                        ),
+                        Text(
+                          "14834************14",
+                          style: kFillerTextSmall,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            Row(
+                children: [
+                  Icon(
+                    Icons.add,
+                    color: Colors.black, // Match your app's color scheme
+                    size: 24, // Adjust size as needed
+                  ),
+                  SizedBox(width: 20), // Add some spacing between text and icon
+                  Text(
+                    "Add a new card",
+                    style: kHeadingText,
+                  ),
+                ]
+            ),
+
+
+
+            Spacer(), // Pushes "Other Methods" to the bottom
+            Row(
+                children: [
+                  Text(
+                    "Other Methods",
+                    style: kHeadingText,
+                  ),
+                ]
+            ),
+            SizedBox(height: 10),
+            Container(
+              width: 366,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.fillBox,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Image.asset(
+                      'assets/payment_related/apple_pay_icon.png',
+                      width: 93, // Adjust size as needed
+                      height: 62,
+                      fit: BoxFit.contain,
+                    ),
+                    Image.asset(
+                      'assets/payment_related/paypal_icon.png',
+                      width: 135, // Adjust size as needed
+                      height: 44,
+                      fit: BoxFit.contain,
+                    )
                   ],
                 ),
               ),
             ),
           ],
+
         ),
+
       ),
     );
   }
