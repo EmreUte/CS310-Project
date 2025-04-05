@@ -97,10 +97,7 @@ class _AddNewCardState extends State<AddNewCard> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
+                        contentPadding: Dimen.textboxPadding,
                       ),
 
                       validator: (value) {
