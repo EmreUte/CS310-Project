@@ -1,11 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'dart:io' show Platform;
-import '../utils/colors.dart';
 
+import 'dart:io' show Platform;
+
+import '../utils/colors.dart';
 import '../utils/dimensions.dart';
 import '../utils/styles.dart';
 
-import 'package:flutter/material.dart';
 
 class AddNewCard extends StatefulWidget {
   const AddNewCard({super.key});
@@ -33,7 +34,8 @@ class _AddNewCardState extends State<AddNewCard> {
                 TextButton(onPressed: () {
                   Navigator.pop(context);
                 },
-                    child: Text('OK'))
+                    child: Text('OK')
+                )
               ],
             );
           }
@@ -45,7 +47,8 @@ class _AddNewCardState extends State<AddNewCard> {
                 TextButton(onPressed: () {
                   Navigator.of(context).pop();
                 },
-                    child: Text('OK'))
+                    child: Text('OK')
+                )
               ],
             );
           }
@@ -70,13 +73,12 @@ class _AddNewCardState extends State<AddNewCard> {
           ),
         ),
       body: Padding(
-          padding: EdgeInsets.fromLTRB(30, 60, 30, 80),
+          padding: Dimen.screenPadding,
           child:  Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 SizedBox(height: 40),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,10 +135,7 @@ class _AddNewCardState extends State<AddNewCard> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
+                        contentPadding: Dimen.textboxPadding
                       ),
 
                       validator: (value) {
@@ -177,10 +176,7 @@ class _AddNewCardState extends State<AddNewCard> {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
+                              contentPadding: Dimen.textboxPadding
                             ),
 
                             validator: (value) {
@@ -220,10 +216,7 @@ class _AddNewCardState extends State<AddNewCard> {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
+                              contentPadding: Dimen.textboxPadding
                             ),
 
                             validator: (value) {
@@ -274,7 +267,7 @@ class _AddNewCardState extends State<AddNewCard> {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.buttonBackground,
-                        padding: EdgeInsets.symmetric(vertical: 14),
+                        padding: Dimen.buttonPadding,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(100),
                         ),
@@ -307,7 +300,7 @@ class _AddNewCardState extends State<AddNewCard> {
           onChanged: (value) {
             addTick();
           },
-          activeColor: AppColors.buttonBackground,
+          activeColor: AppColors.checkbox,
         ),
         Text(
           'I agree to the Terms & Conditions',

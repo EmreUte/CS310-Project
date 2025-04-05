@@ -49,7 +49,7 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
         automaticallyImplyLeading: false,
       ),
       body: Padding(
-        padding: EdgeInsets.fromLTRB(30, 60, 30, 80),
+        padding: Dimen.screenPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

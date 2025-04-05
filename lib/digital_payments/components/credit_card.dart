@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../utils/colors.dart';
 import '../../utils/styles.dart';
+import '../../utils/dimensions.dart';
 
 class CreditCard {
   String name;
@@ -23,13 +24,13 @@ class CreditCardBlock extends StatelessWidget {
     return Container(
       width: 366,
       height: 72,
-      margin: EdgeInsets.fromLTRB(0, 8, 0, 8),
+      margin: Dimen.cardMargins,
       decoration: BoxDecoration(
         color: AppColors.fillBox,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
-        padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+        padding: EdgeInsets.symmetric(horizontal: 10),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
