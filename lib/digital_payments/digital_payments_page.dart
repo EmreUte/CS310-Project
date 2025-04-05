@@ -38,13 +38,15 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primaryText),
+          icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
           onPressed: () => Navigator.pop(context),
         ),
+        centerTitle: true,
         title: Text(
           "Digital Payments",
           style: kAppBarText,
         ),
+        automaticallyImplyLeading: false,
       ),
       body: Padding(
         padding: EdgeInsets.fromLTRB(30, 60, 30, 80),
