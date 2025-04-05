@@ -20,6 +20,7 @@ class _AddNewCardState extends State<AddNewCard> {
   String cardName = "";
   String cardMonth = "";
   String cardYear = "";
+  bool hasSubmitted = false;
 
   Future<void> _showDialog(String title, String message) async {
     bool isAndroid = Platform.isAndroid;
@@ -255,14 +256,20 @@ class _AddNewCardState extends State<AddNewCard> {
                     width: 222,
                     child: ElevatedButton(
                       onPressed: () {
-                        if (_formKey.currentState!.validate()) {
+                        setState(() {
+                          hasSubmitted = true; // Set flag when button is clicked
+                        });
+                        if (_formKey.currentState!.validate() && tickVal == true) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Processing Data')),
                           );
                           _formKey.currentState!.save();
-                        }
-                        else {
-                          _showDialog('Form Error', 'Try again with valid card information');
+                        } else {
+                          String errorMessage = 'Try again with valid card information';
+                          if (tickVal == false) {
+                            errorMessage = 'Try again with valid card information and agree to the Terms & Conditions';
+                          }
+                          _showDialog('Form Error', errorMessage);
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -302,11 +309,11 @@ class _AddNewCardState extends State<AddNewCard> {
           },
           activeColor: AppColors.buttonBackground,
         ),
-        const Text(
+        Text(
           'I agree to the Terms & Conditions',
           style: TextStyle(
             fontSize: 14,
-            color: Colors.black,
+            color: (hasSubmitted && !tickVal) == false ? Colors.black : Colors.red,
           ),
         ),
       ],
