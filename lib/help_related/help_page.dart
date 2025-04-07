@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/dimensions.dart';
 import '../utils/styles.dart';
+import 'faq_page.dart';
 
 class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
@@ -41,7 +42,7 @@ class HelpScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => HelpScreen()),
+                    MaterialPageRoute(builder: (context) => FaqScreen()),
                   );
                 },
                 child: Row(
