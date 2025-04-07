@@ -7,4 +7,5 @@ class AppColors {
   static const Color fillBox = Color(0x5ED9D9D9);
   static const Color buttonBackground = Color(0xFF55628F);
   static const Color appBarBackground = Color(0xFF82558F);
+  static const Color checkbox = Color(0xFFE114A5);
 }
