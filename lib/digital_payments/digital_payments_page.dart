@@ -94,7 +94,7 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
                     icon: Icon(
                       Icons.add,
                       color: Colors.black,
-                      size: 28,
+                      size: 33,
                     ),
                     label: Text(
                       "Add a new card",
