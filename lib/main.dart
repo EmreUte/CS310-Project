@@ -1,25 +1,30 @@
 import 'package:flutter/material.dart';
-import 'InformationPages/passenger_information.dart'; // Make sure this path is correct
-import'InformationPages/driver_information.dart';
+import 'InformationPages/driver_information.dart';
+import 'InformationPages/passenger_information.dart';
 import 'Profiles/driver_profile.dart';
+import 'digital_payments/add_new_card.dart';
+import 'digital_payments/digital_payments_page.dart';
+import 'package:cs310_project/utils/colors.dart';
 
 void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Passenger Info Demo',
+  runApp(MaterialApp(
+      initialRoute: '/digital_payments_page',
+      routes: {
+        '/': (context) => CreditCardScreen(),
+        '/digital_payments_page': (context) => CreditCardScreen(),
+        '/add_new_payment' : (context) => AddNewCard(),
+        '/driver_information':(context) => DriverInformationScreen(),
+        '/passenger_information':(context)=>PassengerInformationScreen(),
+        '/driver_profile':(context)=>DriverProfile()
+      },
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blueGrey,
-        useMaterial3: true, // Optional: for newer Material design
-      ),
-      home: const DriverProfile(),
-    );
-  }
+      theme: ThemeData.light().copyWith(
+          appBarTheme: AppBarTheme(
+            backgroundColor: AppColors.appBarBackground,
+            elevation: 0.0,
+            centerTitle: true,
+          )
+      )
+  ),
+  );
 }
