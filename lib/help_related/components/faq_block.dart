@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
 import '../../utils/styles.dart';
 import '../../utils/dimensions.dart';
+import '../questions_page.dart';
 
 class QuestionBlock extends StatelessWidget {
   final String question;
@@ -21,17 +22,26 @@ class QuestionBlock extends StatelessWidget {
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 10),
-        child: Row(
-          children: [
-          Flexible(  // Added Flexible widget
-            child: Text(
-                question,
-                style: kFillerText,
-                softWrap: true,
-                overflow: TextOverflow.visible,
+        child: TextButton(
+          onPressed: () {
+            Navigator.pushNamed(
+              context,
+              '/question_page',
+              arguments: question,
+            );
+          },
+          child: Row(
+            children: [
+              Flexible(
+                child: Text(
+                  question,
+                  style: kFillerText,
+                  softWrap: true,
+                  overflow: TextOverflow.visible,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

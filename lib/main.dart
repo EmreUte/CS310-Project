@@ -1,5 +1,6 @@
 import 'package:cs310_project/help_related/faq_page.dart';
 import 'package:cs310_project/help_related/help_page.dart';
+import 'package:cs310_project/help_related/questions_page.dart';
 import 'package:flutter/material.dart';
 
 import 'digital_payments/add_new_card.dart';
@@ -14,7 +15,10 @@ void main() {
         '/digital_payments_page': (context) => CreditCardScreen(),
         '/add_new_payment' : (context) => AddNewCard(),
         '/help_page' : (context) => HelpScreen(),
-        '/faq_page' : (context) => FaqScreen()
+        '/faq_page' : (context) => FaqScreen(),
+        '/question_page': (context) => QuestionScreen(
+          ModalRoute.of(context)?.settings.arguments as String,
+        ),
       },
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light().copyWith(

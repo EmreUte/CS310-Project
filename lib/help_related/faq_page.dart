@@ -8,7 +8,7 @@ class FaqScreen extends StatelessWidget {
   static const List<String> questions = [
     "How can I find a ride?",
     "How is the matching between driver and passengers done?",
-    "Can I use cash?",  // Added missing comma here
+    "Can I use cash?",
     "...",
     "...",
     "...",
