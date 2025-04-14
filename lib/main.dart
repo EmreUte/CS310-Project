@@ -6,7 +6,7 @@ import 'InformationPages/driver_information.dart';
 import 'InformationPages/passenger_information.dart';
 import 'Profiles/driver_profile.dart';
 import 'package:cs310_project/utils/colors.dart';
-
+import 'RideMonitoring/finding_your_ride.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       title: 'MyRide',
       debugShowCheckedModeBanner: false,
       //  Welcome Page is the landing screen
-      initialRoute: '/',
+      initialRoute: '/find_your_ride',
       routes: {
         '/': (context) => const WelcomePage(),
         '/digital_payments_page': (context) => CreditCardScreen(),
@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
         '/driver_information': (context) => DriverInformationScreen(),
         '/passenger_information': (context) => PassengerInformationScreen(),
         '/driver_profile': (context) => DriverProfile(),
+        '/find_your_ride': (context) => FindingRideScreen()
       },
       theme: ThemeData.light().copyWith(
         appBarTheme: AppBarTheme(
