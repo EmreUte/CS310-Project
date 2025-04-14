@@ -4,6 +4,7 @@ import '../Settings/settings_page.dart';
 import '../RideHistory/ride_history.dart';
 import '../Preferences/preferences.dart';
 import '../FindRide/find_your_ride.dart';
+import '../preferences/driver_preferences.dart';
 
 class DriverProfile extends StatelessWidget {
   const DriverProfile({Key? key}) : super(key: key);
@@ -46,7 +47,7 @@ class DriverProfile extends StatelessWidget {
               _buildButtonWithAvatar(context, "Find Your Passenger!", const FindYourRidePage()),
               const SizedBox(height: 90),
               // The other two buttons stay below
-              _buildButton(context, "Preferences", const PreferencesPage()),
+              _buildButton(context, "Preferences", const DriverPreferencesScreen()),
               const SizedBox(height: 90),
               _buildButton(context, "Ride History", const RideHistoryPage()),
             ],
