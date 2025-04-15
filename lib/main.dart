@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
       title: 'MyRide',
       debugShowCheckedModeBanner: false,
       //  Welcome Page is the landing screen
-      initialRoute: '/passenger_preferences',
+      initialRoute: '/passenger_information',
       routes: {
         '/': (context) => const WelcomePage(),
         '/digital_payments_page': (context) => CreditCardScreen(),
@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
         '/passenger_profile': (context) => PassengerProfile(),
         '/driver_preferences': (context) => DriverPreferencesScreen(),
         '/passenger_preferences': (context) => PassengerPreferencesScreen(),
-        '/find_your_ride': (context) => FindingRideScreen()
+        '/finding_your_ride': (context) => FindingRideScreen()
       },
       theme: ThemeData.light().copyWith(
         appBarTheme: AppBarTheme(

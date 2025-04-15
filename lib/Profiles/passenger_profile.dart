@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../utils/colors.dart'; // Make sure AppColors is defined here
+import '../utils/colors.dart';
 import '../Settings/settings_page.dart';
 import '../RideHistory/ride_history.dart';
-import '../Preferences/preferences.dart';
-import '../FindRide/find_your_ride.dart';
+import '../Preferences/passenger_preferences.dart';
+import '../RideMonitoring/finding_your_ride.dart';
 import '../digital_payments/digital_payments_page.dart';
 class PassengerProfile extends StatelessWidget {
   const PassengerProfile({Key? key}) : super(key: key);
@@ -38,9 +38,9 @@ class PassengerProfile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildButtonWithAvatar(context, "Find Your Ride!", const FindYourRidePage()),
+              _buildButtonWithAvatar(context, "Find Your Ride!",  FindingRideScreen()),
               const SizedBox(height: 30),
-              _buildButton(context, "Preferences", const PreferencesPage()),
+              _buildButton(context, "Preferences", const PassengerPreferencesScreen()),
               const SizedBox(height: 30),
               _buildButton(context, "Wallet", CreditCardScreen()),
               const SizedBox(height: 30),

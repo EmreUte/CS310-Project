@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
+import '../utils/dimensions.dart';
+import '../utils/styles.dart';
 import '../Settings/settings_page.dart';
 import '../RideHistory/ride_history.dart';
 import '../Preferences/preferences.dart';
-import '../FindRide/find_your_ride.dart';
+import '../RideMonitoring/finding_your_ride.dart';
 import '../preferences/driver_preferences.dart';
 
 class DriverProfile extends StatelessWidget {
@@ -44,7 +46,7 @@ class DriverProfile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Position the "Find Your Passenger!" button at the top
-              _buildButtonWithAvatar(context, "Find Your Passenger!", const FindYourRidePage()),
+              _buildButtonWithAvatar(context, "Find Your Passenger!", FindingRideScreen()),
               const SizedBox(height: 90),
               // The other two buttons stay below
               _buildButton(context, "Preferences", const DriverPreferencesScreen()),
