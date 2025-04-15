@@ -68,6 +68,8 @@ flutter:
     - assets/payment_related/apple_pay_icon.png
     - assets/payment_related/paypal_icon.png
     - assets/car.png
+    - assets/map.png
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

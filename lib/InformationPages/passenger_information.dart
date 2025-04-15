@@ -48,18 +48,7 @@ class _PassengerInformationScreenState
             fontSize: 20,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            color: AppColors.primaryText,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SettingsPage()),
-              );
-            },
-          ),
-        ],
+
       ),
       body: SingleChildScrollView(
         child: Padding(

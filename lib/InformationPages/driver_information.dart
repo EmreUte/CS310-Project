@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
-import '../Settings/settings_page.dart';
 import '../utils/dimensions.dart';
 import '../utils/styles.dart';
 
@@ -50,18 +49,7 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
             fontSize: 20,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            color: AppColors.primaryText,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SettingsPage()),
-              );
-            },
-          ),
-        ],
+
 
       ),
 
