@@ -5,6 +5,7 @@ import 'digital_payments/add_new_card.dart';
 import 'InformationPages/driver_information.dart';
 import 'InformationPages/passenger_information.dart';
 import 'Profiles/driver_profile.dart';
+import 'Profiles/passenger_profile.dart';
 import 'package:cs310_project/utils/colors.dart';
 import 'RideMonitoring/finding_your_ride.dart';
 import 'preferences/passenger_preferences.dart';
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
         '/driver_information': (context) => DriverInformationScreen(),
         '/passenger_information': (context) => PassengerInformationScreen(),
         '/driver_profile': (context) => DriverProfile(),
+        '/passenger_profile': (context) => PassengerProfile(),
         '/driver_preferences': (context) => DriverPreferencesScreen(),
         '/passenger_preferences': (context) => PassengerPreferencesScreen(),
         '/find_your_ride': (context) => FindingRideScreen()
