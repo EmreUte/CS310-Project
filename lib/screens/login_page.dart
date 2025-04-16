@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
-
+import '../Profiles/driver_profile.dart';
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -22,7 +22,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
-         // Direct login to profile pages
+         Navigator.push(context,MaterialPageRoute(builder: (context)=>const DriverProfile()));
     }
   }
 
