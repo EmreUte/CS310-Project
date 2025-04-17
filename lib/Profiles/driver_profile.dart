@@ -16,15 +16,13 @@ class DriverProfile extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: AppColors.appBarBackground,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryText),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Driver Name",
-          style: TextStyle(color: AppColors.primaryText),
+          style: kAppBarText,
         ),
         actions: [
           IconButton(

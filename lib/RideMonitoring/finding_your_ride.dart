@@ -60,20 +60,18 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: AppColors.appBarBackground,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryText),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Find Your Ride",
-          style: TextStyle(color: AppColors.primaryText),
+          style: kAppBarText,
         ),
       ),
       body: Column(
         children: [
-          SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.10),
           Expanded(
             child: ListView.separated(
               physics: const NeverScrollableScrollPhysics(),

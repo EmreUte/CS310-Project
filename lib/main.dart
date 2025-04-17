@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
       title: 'MyRide',
       debugShowCheckedModeBanner: false,
       //  Welcome Page is the landing screen
-      initialRoute: '/passenger_information',
+      initialRoute: '/',
       routes: {
         '/': (context) => const WelcomePage(),
         '/digital_payments_page': (context) => CreditCardScreen(),

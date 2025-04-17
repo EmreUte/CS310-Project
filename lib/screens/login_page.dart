@@ -1,3 +1,4 @@
+import 'package:cs310_project/utils/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
 
@@ -22,7 +23,8 @@ class _LoginPageState extends State<LoginPage> {
 
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
-         // Direct login to profile pages
+        Navigator.pushNamed(context, '/driver_profile');
+        // Direct login to profile pages
     }
   }
 
@@ -30,8 +32,9 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login'),
-        backgroundColor: Colors.purple,
+        title: Text('Login',
+            style: kAppBarText,
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),

@@ -72,8 +72,9 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
           icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
           onPressed: () => Navigator.pop(context),
         ),
-      centerTitle: true,
-      title: Text("Driver Preferences", style: kAppBarText),
+      title: Text("Driver Preferences",
+          style: kAppBarText,
+      ),
       automaticallyImplyLeading: false,
       ),
     body: SingleChildScrollView(child: Padding(
