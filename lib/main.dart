@@ -1,3 +1,6 @@
+import 'package:cs310_project/help_related/faq_page.dart';
+import 'package:cs310_project/help_related/help_page.dart';
+import 'package:cs310_project/help_related/questions_page.dart';
 import 'package:flutter/material.dart';
 import 'screens/welcome_page.dart';
 import 'digital_payments/digital_payments_page.dart';
