@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
+import '../utils/styles.dart';
 import '../Settings/settings_page.dart';
 import '../RideHistory/ride_history.dart';
 import '../Preferences/passenger_preferences.dart';
 import '../RideMonitoring/finding_your_ride.dart';
 import '../digital_payments/digital_payments_page.dart';
+
 class PassengerProfile extends StatelessWidget {
   const PassengerProfile({Key? key}) : super(key: key);
 
@@ -15,9 +17,13 @@ class PassengerProfile extends StatelessWidget {
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: AppColors.appBarBackground,
-        title: const Text(
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
           "Passenger Name",
-          style: TextStyle(color: AppColors.primaryText),
+          style: kHeadingText.copyWith(color: AppColors.primaryText),
         ),
         actions: [
           IconButton(
@@ -26,7 +32,7 @@ class PassengerProfile extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) =>  SettingsPage()),
+                MaterialPageRoute(builder: (context) => SettingsPage()),
               );
             },
           ),
@@ -38,7 +44,7 @@ class PassengerProfile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildButtonWithAvatar(context, "Find Your Ride!",  FindingRideScreen()),
+              _buildButtonWithAvatar(context, "Find Your Ride!", FindingRideScreen()),
               const SizedBox(height: 30),
               _buildButton(context, "Preferences", const PassengerPreferencesScreen()),
               const SizedBox(height: 30),
@@ -54,8 +60,6 @@ class PassengerProfile extends StatelessWidget {
                   fit: BoxFit.cover,
                 ),
               ),
-
-              // We'll insert the map image here in the next step
             ],
           ),
         ),
@@ -82,7 +86,7 @@ class PassengerProfile extends StatelessWidget {
             ),
             child: Text(
               label,
-              style: const TextStyle(fontSize: 16, color: Colors.white),
+              style: kButtonText,
             ),
           ),
         ),
@@ -129,7 +133,7 @@ class PassengerProfile extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: const TextStyle(fontSize: 16, color: Colors.white),
+          style: kButtonText,
         ),
       ),
     );

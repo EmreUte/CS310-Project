@@ -14,15 +14,14 @@ class DriverProfile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primaryText),
+          icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           "Driver Name",
-          style: kAppBarText,
+          style: kHeadingText.copyWith(color: AppColors.primaryText),
         ),
         actions: [
           IconButton(
@@ -40,10 +39,10 @@ class DriverProfile extends StatelessWidget {
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 90),
+
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Position the "Find Your Passenger!" button at the top
               _buildButtonWithAvatar(context, "Find Your Passenger!", FindingRideScreen()),
               const SizedBox(height: 90),
               // The other two buttons stay below
@@ -61,10 +60,9 @@ class DriverProfile extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // The button itself
         SizedBox(
           width: double.infinity,
-          height: 56, // Fixed height to match other buttons
+          height: 56,
           child: ElevatedButton(
             onPressed: () {
               Navigator.push(
@@ -81,18 +79,15 @@ class DriverProfile extends StatelessWidget {
             ),
             child: Text(
               label,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.white,
-              ),
+              style: kButtonText,
+
             ),
           ),
         ),
-        // Avatar positioned on top of the button
         Positioned(
-          left: -7,
+          left: -14,
            top:-15,
-           // Position it above the button
+
           child: _buildAvatar(),
         ),
       ],
@@ -101,8 +96,8 @@ class DriverProfile extends StatelessWidget {
 
   Widget _buildAvatar() {
     return Container(
-      width: 90, // Increased size
-      height: 90, // Increased size
+      width: 90,
+      height: 90,
       decoration: BoxDecoration(
         color: const Color(0xFFEADDFF),
         borderRadius: BorderRadius.circular(55),
@@ -117,8 +112,9 @@ class DriverProfile extends StatelessWidget {
       ),
       child: const Center(
         child: Icon(
+
           Icons.person_outline,
-          size: 80, // Increased size
+          size: 80,
           color: Color(0xFF4F378A),
         ),
       ),
@@ -128,7 +124,7 @@ class DriverProfile extends StatelessWidget {
   Widget _buildButton(BuildContext context, String label, Widget page) {
     return SizedBox(
       width: double.infinity,
-      height: 56, // Fixed height to match the avatar button
+      height: 56,
       child: ElevatedButton(
         onPressed: () {
           Navigator.push(
@@ -145,10 +141,7 @@ class DriverProfile extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Colors.white,
-          ),
+          style: kButtonText,
         ),
       ),
     );

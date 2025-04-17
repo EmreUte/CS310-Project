@@ -39,15 +39,12 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
         centerTitle: true,
         backgroundColor: AppColors.appBarBackground,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primaryText),
+          icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title:  Text(
           'Driver Information',
-          style: TextStyle(
-            color: AppColors.primaryText,
-            fontSize: 20,
-          ),
+          style: kAppBarText,
         ),
 
 
@@ -94,7 +91,7 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
                   controller: _plateController,
                   isPassword: true,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 3),
                 Align(
                   alignment: Alignment.center,
                   child: ElevatedButton(
@@ -118,11 +115,8 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
                     ),
                     child: Text(
                       _isEditable ? 'Done' : 'Edit',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
+                      style:  kButtonText,
 
-                      ),
                     ),
                   ),
                 ),
@@ -173,7 +167,7 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
           labelStyle: const TextStyle(color: AppColors.secondaryText),
           prefixIcon: icon != null
               ? Icon(icon, color: AppColors.secondaryText)
-              : const SizedBox(width: 24), // spacing for alignment
+              : const SizedBox(width: 24),
           filled: true,
           fillColor: const Color(0xFFD9D9D9),
           border: OutlineInputBorder(
@@ -185,7 +179,7 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
             vertical: 12,
           ),
         ),
-        style: const TextStyle(color: AppColors.secondaryText), // <- input text color
+        style: const TextStyle(color: AppColors.secondaryText),
 
 
         validator: (value) {
@@ -195,7 +189,7 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
           return null;
         },
         onSaved: (value) {
-          // Handle saving the value here if needed
+
         },
       ),
     );
