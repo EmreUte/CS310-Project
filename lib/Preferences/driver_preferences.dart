@@ -78,7 +78,8 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
       automaticallyImplyLeading: false,
       ),
     body: SingleChildScrollView(child: Padding(
-      padding: EdgeInsets.fromLTRB(30, 30, 30, 80),
+      //EdgeInsets.fromLTRB(30, 30, 30, 80)
+      padding: Dimen.screenPadding,
       child: Form(key: _formKey, child: 
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,11 +114,12 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
                 ),
             SizedBox(height: 15),
             Center(
-                child: Text("Passenger Gender Preference",style: kFillerText)),
+                child: Text("Passenger  Gender  Preference",style: kFillerText)),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: genderPreference.map<Widget>((option) {
-                  return Padding(padding: const EdgeInsets.symmetric(horizontal: 17.0),
+                // const EdgeInsets.symmetric(horizontal: 17.0)
+                return Padding(padding: Dimen.textboxPadding,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [Radio<String>(
@@ -129,7 +131,7 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
                             });
                           }
                         ),
-                      Text(option),
+                      Text(option,style: kFillerTextSmall,),
                       ],
                     ),
                   );
@@ -139,7 +141,7 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
           Center(
               child: Text("Rating",style: kFillerText)),
           Padding(
-          padding: Dimen.textboxPadding,
+          padding: Dimen.cardMargins,
           child: FormField<int>
             (
             validator: (value) {
@@ -154,7 +156,8 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
                 children: [
               InputDecorator(
               decoration: InputDecoration(
-              contentPadding: EdgeInsets.zero,
+              //EdgeInsets.zero
+                contentPadding: Dimen.cardMargins,
                 border: InputBorder.none,
                 errorText: field.errorText,
               ),
@@ -165,7 +168,7 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
                     selectedRating == null
                         ? "Select Rating(1 to 5)"
                         : "Selected Rating: $selectedRating ⭐",
-                    ),
+                    style: kFillerText,),
                   ),
                   collapsedBackgroundColor: AppColors.fillBox,
                   backgroundColor: AppColors.fillBox,
@@ -276,7 +279,8 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: smokingPreference.map<Widget>((option) {
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 17.0),
+                        //const EdgeInsets.symmetric(horizontal: 17.0)
+                        padding: Dimen.textboxPadding,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [Radio<String>(
@@ -288,7 +292,7 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
                                 });
                               }
                           ),
-                            Text(option),
+                            Text(option,style: kFillerTextSmall),
                           ],
                         ),
                       );
@@ -298,7 +302,7 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
                   Center(
                       child: Text("Car Type", style: kFillerText)),
                   Padding(
-                    padding: Dimen.textboxPadding,
+                    padding: Dimen.cardMargins,
                     child: FormField<String>(
                       validator: (value) {
                       if (value == null) {
@@ -312,7 +316,7 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
               children: [
                 InputDecorator(
                         decoration: InputDecoration(
-                        contentPadding: EdgeInsets.zero,
+                        contentPadding: Dimen.cardMargins,
                           border: InputBorder.none,
                           errorText: field.errorText,
                         ),
@@ -343,7 +347,7 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
               },
               children: carTypes.map((element) {
                 return RadioListTile<String>(
-              title: Text(element),
+              title: Text(element,style: kFillerTextSmall),
               value: element,
               groupValue: selectedCarType,
               onChanged: (value) {
