@@ -34,68 +34,56 @@ class SettingsPageState extends State<SettingsPage> {
         children: [
           // Account Section
           _sectionHeader('Account'),
-          _navTile('Personal information'),
-          _navTile('Request account info'),
-          _navTile('Delete account'),
+          _settingsTile('Personal information', Icon(Icons.play_arrow), () => Navigator.pushNamed(context, '/driver_information')),
+          _settingsTile('Request account info', Icon(Icons.play_arrow)),
+          _settingsTile('Delete account', Icon(Icons.play_arrow)),
 
           // Notifications
           _sectionHeader('Notifications'),
-          SwitchListTile(
-            title: Text('Show notifications'),
+          _settingsTile('Show notifications', Switch(
             value: _showNotifications,
-            onChanged: (v) => setState(() => _showNotifications = v),
-          ),
-          SwitchListTile(
-            title: Text('Sound'),
-            value: _sound,
-            onChanged: (v) => setState(() => _sound = v),
-          ),
+            onChanged: (v) => setState(() => _showNotifications = v))),
+          _settingsTile('Sound', Switch(
+              value: _sound,
+              onChanged: (v) => setState(() => _sound = v))),
 
           // Language
           _sectionHeader('Language'),
-          ListTile(
-            title: Text('Language'),
-            trailing: DropdownButton<String>(
-              value: _language,
-              underline: SizedBox(),
-              onChanged: (val) => setState(() => _language = val!),
-              items: ['English', 'Spanish', 'French']
-                  .map((lang) => DropdownMenuItem(
-                value: lang,
-                child: Text(lang),
-              ))
-                  .toList(),
-            ),
-          ),
+          _settingsTile('Language', DropdownButton<String>(
+            value: _language,
+            underline: SizedBox(),
+            onChanged: (val) => setState(() => _language = val!),
+            items: ['English', 'Spanish', 'French']
+                .map((lang) => DropdownMenuItem(
+                  value: lang,
+                  child: Text(lang),
+                ))
+                .toList(),
+          )),
 
           // Appearance
           _sectionHeader('Appearance'),
-          SwitchListTile(
-            title: Text('Dark theme'),
-            value: _darkTheme,
-            onChanged: (v) => setState(() => _darkTheme = v),
-          ),
-          ListTile(
-            title: Text('Text size'),
-            trailing: DropdownButton<String>(
-              value: _textSize,
-              underline: SizedBox(),
-              onChanged: (val) => setState(() => _textSize = val!),
-              items: ['Small', 'Medium', 'Large']
-                  .map((size) => DropdownMenuItem(
-                value: size,
-                child: Text(size),
-              ))
-                  .toList(),
-            ),
-          ),
+          _settingsTile('Dark theme', Switch(
+              value: _darkTheme,
+              onChanged: (v) => setState(() => _darkTheme = v))),
+          _settingsTile('Text size', DropdownButton<String>(
+            value: _textSize,
+            underline: SizedBox(),
+            onChanged: (val) => setState(() => _textSize = val!),
+            items: ['Small', 'Medium', 'Large']
+                .map((size) => DropdownMenuItem(
+              value: size,
+              child: Text(size),
+            ))
+                .toList(),
+          )),
 
           // Help & Share
           _sectionHeader('Get Help'),
-          _navTile('Help Page'),
+          _settingsTile('Help Page', Icon(Icons.play_arrow), () => Navigator.pushNamed(context, '/help_page')),
           _sectionHeader('Share and rate'),
-          _navTile('Share the app'),
-          _navTile('Rate the app'),
+          _settingsTile('Share the app', Icon(Icons.play_arrow)),
+          _settingsTile('Rate the app', Icon(Icons.play_arrow)),
 
           // Log out button
           Padding(
@@ -141,7 +129,11 @@ class SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _navTile(String title, [Function()? onTap]) {
+  Widget _settingsTile (
+    String title,
+    [Widget? trailing,
+    Function()? onTap,]
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Color(0xFFE6E0E9),
@@ -159,11 +151,11 @@ class SettingsPageState extends State<SettingsPage> {
             color: Color(0xFF1D1B20),
             fontWeight: FontWeight.w400,
             fontSize: 16,
-          )
+          ),
         ),
-        trailing: Icon(Icons.play_arrow),
-          onTap: onTap,
-      )
+        trailing: trailing,
+        onTap: onTap,
+      ),
     );
   }
 }
