@@ -1,5 +1,6 @@
 import 'package:cs310_project/utils/styles.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../utils/colors.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -21,8 +22,13 @@ class SettingsPageState extends State<SettingsPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: AppColors.appBarBackground,
-        title: Text('Settings'),
-        leading: BackButton(),
+        title: Text(
+            'Settings',
+            style: kAppBarText),
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: ListView(
         children: [
@@ -97,13 +103,22 @@ class SettingsPageState extends State<SettingsPage> {
             child: Center(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF8E78C8),
+                  backgroundColor: Color(0xFF65558F),
                   shape: StadiumBorder(),
                   padding:
                   EdgeInsets.symmetric(horizontal: 40.0, vertical: 12.0),
                 ),
-                onPressed: () {},
-                child: Text('Log out'),
+                onPressed: () {
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                },
+                child: Text(
+                  'Log out',
+                  style: GoogleFonts.roboto(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                  )
+                ),
               ),
             ),
           ),
@@ -117,19 +132,38 @@ class SettingsPageState extends State<SettingsPage> {
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
       child: Text(
         text,
-        style: TextStyle(
-          color: Colors.grey[600],
+        style: GoogleFonts.roboto(
+          color: Color(0xFFCAC4D0),
           fontWeight: FontWeight.w600,
+          fontSize: 14,
         ),
       ),
     );
   }
 
-  Widget _navTile(String title) {
-    return ListTile(
-      title: Text(title),
-      trailing: Icon(Icons.chevron_right),
-      onTap: () {},
+  Widget _navTile(String title, [Function()? onTap]) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Color(0xFFE6E0E9),
+        border: Border(
+          bottom: BorderSide(
+            color: Color(0xFF49454F),
+            width: 1,
+          ),
+        ),
+      ),
+      child: ListTile(
+        title: Text(
+          title,
+          style: GoogleFonts.roboto(
+            color: Color(0xFF1D1B20),
+            fontWeight: FontWeight.w400,
+            fontSize: 16,
+          )
+        ),
+        trailing: Icon(Icons.play_arrow),
+          onTap: onTap,
+      )
     );
   }
 }
