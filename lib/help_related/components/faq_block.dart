@@ -24,10 +24,11 @@ class QuestionBlock extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 10),
         child: TextButton(
           onPressed: () {
-            Navigator.pushNamed(
+            Navigator.push(
               context,
-              '/question_page',
-              arguments: question,
+              MaterialPageRoute(
+                builder: (context) => QuestionScreen(question),
+              ),
             );
           },
           child: Row(
