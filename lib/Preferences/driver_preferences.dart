@@ -67,7 +67,9 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
   @override
   Widget build(BuildContext context) 
   {
-    return Scaffold(appBar: AppBar(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
       leading: IconButton(
           icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
           onPressed: () => Navigator.pop(context),

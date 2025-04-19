@@ -26,8 +26,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'MyRide',
       debugShowCheckedModeBanner: false,
-      //  Welcome Page is the landing screen
-      initialRoute: '/',
+      //  Welcome Page is the landing screen.
+      initialRoute: '/', // Change to passenger_profile if you want to view passenger info and payment methods (this will be implemented when backend comes)
       routes: {
         '/': (context) => const WelcomePage(),
         '/digital_payments_page': (context) => CreditCardScreen(),

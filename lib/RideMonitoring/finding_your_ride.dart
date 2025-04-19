@@ -101,7 +101,7 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
               },
             ),
           ),
-          SizedBox(height: MediaQuery.of(context).size.height * 0.10),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.05),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: SizedBox(

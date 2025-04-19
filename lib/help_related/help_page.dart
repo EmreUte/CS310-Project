@@ -75,11 +75,12 @@ class HelpScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: TextButton(
-                onPressed: () {
+                onPressed: () { /*
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => HelpScreen()),
                   );
+                  */
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
