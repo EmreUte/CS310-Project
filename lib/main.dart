@@ -13,6 +13,7 @@ import 'package:cs310_project/utils/colors.dart';
 import 'RideMonitoring/finding_your_ride.dart';
 import 'preferences/passenger_preferences.dart';
 import 'preferences/driver_preferences.dart';
+import 'Settings/settings_page.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -37,7 +38,8 @@ class MyApp extends StatelessWidget {
         '/passenger_profile': (context) => PassengerProfile(),
         '/driver_preferences': (context) => DriverPreferencesScreen(),
         '/passenger_preferences': (context) => PassengerPreferencesScreen(),
-        '/finding_your_ride': (context) => FindingRideScreen()
+        '/finding_your_ride': (context) => FindingRideScreen(),
+        '/settings_page': (context) => SettingsPage(),
       },
       theme: ThemeData.light().copyWith(
         appBarTheme: AppBarTheme(
