@@ -4,7 +4,7 @@ import '../utils/dimensions.dart';
 import '../utils/styles.dart';
 
 class DriverInformationScreen extends StatefulWidget {
-  const DriverInformationScreen({Key? key}) : super(key: key);
+  const DriverInformationScreen({super.key});
 
   @override
   State<DriverInformationScreen> createState() =>

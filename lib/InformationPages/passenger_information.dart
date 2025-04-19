@@ -5,10 +5,10 @@ import '../utils/dimensions.dart';
 import '../utils/styles.dart';
 
 class PassengerInformationScreen extends StatefulWidget {
-  const PassengerInformationScreen({Key? key}) : super(key: key);
+  const PassengerInformationScreen({super.key});
 
   @override
-  _PassengerInformationScreenState createState() =>
+  State<PassengerInformationScreen> createState() =>
       _PassengerInformationScreenState();
 }
 

@@ -41,6 +41,7 @@ class MyApp extends StatelessWidget {
         '/finding_your_ride': (context) => FindingRideScreen(),
         '/settings_page': (context) => SettingsPage(),
         '/help_page': (context) => HelpScreen(),
+        '/faq_page': (context) => FaqScreen(),
       },
       theme: ThemeData.light().copyWith(
         appBarTheme: AppBarTheme(

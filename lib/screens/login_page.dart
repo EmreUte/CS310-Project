@@ -2,6 +2,9 @@ import 'package:cs310_project/utils/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
 
+import '../utils/colors.dart';
+import '../utils/dimensions.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -31,16 +34,26 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+    backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text('Login',
             style: kAppBarText,
         ),
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
+          onPressed: () => {
+            Navigator.pop(context)
+          },
+        ),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        padding: Dimen.screenPadding,
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Email Field
               TextFormField(
@@ -90,15 +103,15 @@ class _LoginPageState extends State<LoginPage> {
               ElevatedButton(
                 onPressed: _handleLogin,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF5E548E),
+                  backgroundColor: AppColors.buttonBackground,
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'Login',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+                  style: kButtonText,
                 ),
               ),
             ],

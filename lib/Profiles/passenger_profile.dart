@@ -8,7 +8,7 @@ import '../RideMonitoring/finding_your_ride.dart';
 import '../digital_payments/digital_payments_page.dart';
 
 class PassengerProfile extends StatelessWidget {
-  const PassengerProfile({Key? key}) : super(key: key);
+  const PassengerProfile({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +93,6 @@ class PassengerProfile extends StatelessWidget {
           ),
         ),
 
-        // Single avatar with proper positioning and zoom effect
         Positioned(
           left: -20,
           top: -20,
@@ -113,7 +112,7 @@ class PassengerProfile extends StatelessWidget {
                 width: 88,
                 height: 88,
                 child: Transform.scale(
-                  scale: 1.5, // This creates the zoom effect
+                  scale: 1.5,
                   child: Image.network(
                     'https://as1.ftcdn.net/v2/jpg/03/46/83/96/1000_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg',
                     fit: BoxFit.cover,
