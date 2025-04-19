@@ -33,20 +33,15 @@ class _PassengerInformationScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         centerTitle: true,
-        backgroundColor: AppColors.appBarBackground,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primaryText),
+          icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Passenger Information',
-          style: TextStyle(
-            color: AppColors.primaryText,
-            fontSize: 20,
-          ),
+          style: kAppBarText,
         ),
 
       ),
@@ -108,10 +103,7 @@ class _PassengerInformationScreenState
                     ),
                     child: Text(
                       _isEditable ? 'Done' : 'Edit',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
+                      style:  kButtonText,
                     ),
                   ),
                 ),
@@ -164,7 +156,7 @@ class _PassengerInformationScreenState
               children: [
                 Icon(icon),
                 const SizedBox(width: 8),
-                Text(label),
+                Text(label,style: kFillerText),
               ],
             ),
           ),
@@ -186,7 +178,6 @@ class _PassengerInformationScreenState
           return null;
         },
         onSaved: (value) {
-          // Handle saving the value here if needed
         },
       ),
     );

@@ -13,15 +13,11 @@ class DriverProfile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primaryText),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false,
         title: Text(
           "Driver Name",
-          style: kAppBarText,
+          style: kHeadingText.copyWith(color: AppColors.primaryText),
         ),
         actions: [
           IconButton(
@@ -39,10 +35,10 @@ class DriverProfile extends StatelessWidget {
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 90),
+
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Position the "Find Your Passenger!" button at the top
               _buildButtonWithAvatar(context, "Find Your Passenger!", FindingRideScreen()),
               const SizedBox(height: 90),
               // The other two buttons stay below
@@ -60,10 +56,10 @@ class DriverProfile extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // The button itself
+        // Button
         SizedBox(
           width: double.infinity,
-          height: 56, // Fixed height to match other buttons
+          height: 56,
           child: ElevatedButton(
             onPressed: () {
               Navigator.push(
@@ -80,54 +76,54 @@ class DriverProfile extends StatelessWidget {
             ),
             child: Text(
               label,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.white,
-              ),
+              style: kButtonText,
             ),
           ),
         ),
-        // Avatar positioned on top of the button
+
+        // Single avatar with proper positioning and zoom effect
         Positioned(
-          left: -7,
-           top:-15,
-           // Position it above the button
-          child: _buildAvatar(),
+          left: -20,
+          top: -20,
+          child: Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.appBarBackground,
+                width: 4,
+              ),
+
+            ),
+            child: ClipOval(
+              child: SizedBox(
+                width: 88,
+                height: 88,
+                child: Transform.scale(
+                  scale: 1.5, // This creates the zoom effect
+                  child: Image.network(
+                    'https://as1.ftcdn.net/v2/jpg/03/46/83/96/1000_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildAvatar() {
-    return Container(
-      width: 90, // Increased size
-      height: 90, // Increased size
-      decoration: BoxDecoration(
-        color: const Color(0xFFEADDFF),
-        borderRadius: BorderRadius.circular(55),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: const Center(
-        child: Icon(
-          Icons.person_outline,
-          size: 80, // Increased size
-          color: Color(0xFF4F378A),
-        ),
-      ),
-    );
-  }
+
+
+
+
 
   Widget _buildButton(BuildContext context, String label, Widget page) {
     return SizedBox(
       width: double.infinity,
-      height: 56, // Fixed height to match the avatar button
+      height: 56,
       child: ElevatedButton(
         onPressed: () {
           Navigator.push(
@@ -144,10 +140,7 @@ class DriverProfile extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Colors.white,
-          ),
+          style: kButtonText,
         ),
       ),
     );

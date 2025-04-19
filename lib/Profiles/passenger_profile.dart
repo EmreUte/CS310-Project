@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
+import '../utils/styles.dart';
 import '../Settings/settings_page.dart';
 import '../RideHistory/ride_history.dart';
 import '../Preferences/passenger_preferences.dart';
 import '../RideMonitoring/finding_your_ride.dart';
 import '../digital_payments/digital_payments_page.dart';
+
 class PassengerProfile extends StatelessWidget {
   const PassengerProfile({Key? key}) : super(key: key);
 
@@ -15,9 +17,10 @@ class PassengerProfile extends StatelessWidget {
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: AppColors.appBarBackground,
-        title: const Text(
+        automaticallyImplyLeading: false,
+        title: Text(
           "Passenger Name",
-          style: TextStyle(color: AppColors.primaryText),
+          style: kHeadingText.copyWith(color: AppColors.primaryText),
         ),
         actions: [
           IconButton(
@@ -26,7 +29,7 @@ class PassengerProfile extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) =>  SettingsPage()),
+                MaterialPageRoute(builder: (context) => SettingsPage()),
               );
             },
           ),
@@ -38,7 +41,7 @@ class PassengerProfile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildButtonWithAvatar(context, "Find Your Ride!",  FindingRideScreen()),
+              _buildButtonWithAvatar(context, "Find Your Ride!", FindingRideScreen()),
               const SizedBox(height: 30),
               _buildButton(context, "Preferences", const PassengerPreferencesScreen()),
               const SizedBox(height: 30),
@@ -54,8 +57,6 @@ class PassengerProfile extends StatelessWidget {
                   fit: BoxFit.cover,
                 ),
               ),
-
-              // We'll insert the map image here in the next step
             ],
           ),
         ),
@@ -67,51 +68,72 @@ class PassengerProfile extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
+        // Button
         SizedBox(
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => page),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.buttonBackground,
+              padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
             child: Text(
               label,
-              style: const TextStyle(fontSize: 16, color: Colors.white),
+              style: kButtonText,
             ),
           ),
         ),
+
+        // Single avatar with proper positioning and zoom effect
         Positioned(
+          left: -20,
           top: -20,
-          left: -7,
-          child: _buildAvatar(),
+          child: Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.appBarBackground,
+                width: 4,
+              ),
+
+            ),
+            child: ClipOval(
+              child: SizedBox(
+                width: 88,
+                height: 88,
+                child: Transform.scale(
+                  scale: 1.5, // This creates the zoom effect
+                  child: Image.network(
+                    'https://as1.ftcdn.net/v2/jpg/03/46/83/96/1000_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildAvatar() {
-    return Container(
-      width: 90,
-      height: 90,
-      decoration: BoxDecoration(
-        color: const Color(0xFFEADDFF),
-        borderRadius: BorderRadius.circular(55),
-      ),
-      child: const Center(
-        child: Icon(
-          Icons.person_outline,
-          size: 80,
-          color: Color(0xFF4F378A),
-        ),
-      ),
-    );
-  }
+
+
+
+
+
+
+
 
   Widget _buildButton(BuildContext context, String label, Widget page) {
     return SizedBox(
@@ -129,7 +151,7 @@ class PassengerProfile extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: const TextStyle(fontSize: 16, color: Colors.white),
+          style: kButtonText,
         ),
       ),
     );
