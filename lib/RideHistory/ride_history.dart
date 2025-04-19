@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cs310_project/utils/styles.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/colors.dart';
+import 'package:intl/intl.dart';
 
 //Data model for ride record
 class RideRecord {
@@ -145,18 +146,19 @@ class RideHistoryPageState extends State<RideHistoryPage> {
     RideRecord(date: '24/11/2024', time: '18:40 - 19:25', pickup: 'Beyoğlu', dropoff: 'Fatih', amount: '300 ₺'),
     RideRecord(date: '13/07/2024', time: '21:24 - 23:33', pickup: 'Beşiktaş', dropoff: 'Karaköy', amount: '150 ₺'),
     RideRecord(date: '01/06/2024', time: '09:15 - 10:00', pickup: 'Şişli', dropoff: 'Levent', amount: '200 ₺'),
-    RideRecord(date: '01/05/2024', time: '09:15 - 10:00', pickup: 'Şişhane', dropoff: 'Topkapı', amount: '220 ₺'),
+    RideRecord(date: '01/05/2024', time: '10:22 - 10:57', pickup: 'Şişhane', dropoff: 'Topkapı', amount: '220 ₺'),
   ];
 
   int currentPage = 1;
   final int recordsPerPage = 5;
 
+  final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
   void sortRecords(String option) {
     setState(() {
       if (option == 'Date Ascending') {
-        rideRecords.sort((a, b) => a.date.compareTo(b.date));
+        rideRecords.sort((a, b) => dateFormat.parse(a.date).compareTo(dateFormat.parse(b.date)));
       } else if (option == 'Date Descending') {
-        rideRecords.sort((a, b) => b.date.compareTo(a.date));
+        rideRecords.sort((a, b) => dateFormat.parse(b.date).compareTo(dateFormat.parse(a.date)));
       } else if (option == 'Amount Ascending') {
         rideRecords.sort((a, b) => double.parse(a.amount.split(' ')[0]).compareTo(double.parse(b.amount.split(' ')[0])));
       } else if (option == 'Amount Descending') {
@@ -251,9 +253,9 @@ class RideHistoryPageState extends State<RideHistoryPage> {
                     ),
                     child: Row(
                       children: [
-                        Text('Sort by'),
+                        Text('Sort by', style: TextStyle(color: Colors.black)),
                         SizedBox(width: 4.0),
-                        Icon(Icons.arrow_drop_down),
+                        Icon(Icons.arrow_drop_down, color: Colors.black),
                       ],
                     ),
                   ),
@@ -270,9 +272,9 @@ class RideHistoryPageState extends State<RideHistoryPage> {
                     ),
                     child: Row(
                       children: [
-                        Text('Export'),
+                        Text('Export', style: TextStyle(color: Colors.black)),
                         SizedBox(width: 4.0),
-                        Icon(Icons.download),
+                        Icon(Icons.download, color: Colors.black),
                       ],
                     ),
                   ),
