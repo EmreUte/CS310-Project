@@ -131,7 +131,235 @@ class RideHistoryBlock extends StatelessWidget {
   }
 }
 // Main Ride History Page
+class RideHistoryPage extends StatefulWidget {
+  @override
+  _RideHistoryPageState createState() => _RideHistoryPageState();
+}
 
+class _RideHistoryPageState extends State<RideHistoryPage> {
+  List<RideRecord> rideRecords = [
+    RideRecord(date: '10/05/2025', time: '14:28 - 15:17', pickup: 'Maltepe', dropoff: 'Tuzla', amount: '250 ₺'),
+    RideRecord(date: '08/01/2025', time: '11:18 - 12:04', pickup: 'Kadıköy', dropoff: 'Kartal', amount: '350 ₺'),
+    RideRecord(date: '24/11/2024', time: '18:40 - 19:25', pickup: 'Beyoğlu', dropoff: 'Fatih', amount: '300 ₺'),
+    RideRecord(date: '13/07/2024', time: '21:24 - 23:33', pickup: 'Beşiktaş', dropoff: 'Karaköy', amount: '150 ₺'),
+    RideRecord(date: '01/06/2024', time: '09:15 - 10:00', pickup: 'Şişli', dropoff: 'Levent', amount: '200 ₺'),
+  ];
+
+  int currentPage = 1;
+  final int recordsPerPage = 5;
+
+  void sortRecords(String option) {
+    setState(() {
+      if (option == 'Date Ascending') {
+        rideRecords.sort((a, b) => a.date.compareTo(b.date));
+      } else if (option == 'Date Descending') {
+        rideRecords.sort((a, b) => b.date.compareTo(a.date));
+      } else if (option == 'Amount Ascending') {
+        rideRecords.sort((a, b) => double.parse(a.amount.split(' ')[0]).compareTo(double.parse(b.amount.split(' ')[0])));
+      } else if (option == 'Amount Descending') {
+        rideRecords.sort((a, b) => double.parse(b.amount.split(' ')[0]).compareTo(double.parse(a.amount.split(' ')[0])));
+      }
+    });
+  }
+
+  void deleteRecord(int index) {
+    setState(() {
+      rideRecords.removeAt(index);
+    });
+  }
+
+  void showRatingPopup() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Rate the Ride'),
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(5, (index) => Icon(Icons.star_border, color: Colors.amber)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Submit'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void showDetailsPopup() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Ride Details'),
+        content: Text('Details and driver info will be shown here.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    int totalPages = (rideRecords.length / recordsPerPage).ceil();
+    List<RideRecord> currentRecords = rideRecords
+        .skip((currentPage - 1) * recordsPerPage)
+        .take(recordsPerPage)
+        .toList();
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.purple,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context); // Back navigation
+          },
+        ),
+        title: Text('Ride History', style: TextStyle(color: Colors.white)),
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
+          // Action Buttons
+          Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                PopupMenuButton<String>(
+                  onSelected: sortRecords,
+                  itemBuilder: (context) => [
+                    PopupMenuItem(value: 'Date Ascending', child: Text('Date Ascending')),
+                    PopupMenuItem(value: 'Date Descending', child: Text('Date Descending')),
+                    PopupMenuItem(value: 'Amount Ascending', child: Text('Amount Ascending')),
+                    PopupMenuItem(value: 'Amount Descending', child: Text('Amount Descending')),
+                  ],
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: Row(
+                      children: [
+                        Text('Sort by'),
+                        SizedBox(width: 4.0),
+                        Icon(Icons.arrow_drop_down),
+                      ],
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Placeholder for export functionality
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: Row(
+                      children: [
+                        Text('Export'),
+                        SizedBox(width: 4.0),
+                        Icon(Icons.download),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Ride History List
+          Expanded(
+            child: ListView.builder(
+              itemCount: currentRecords.length,
+              itemBuilder: (context, index) {
+                final record = currentRecords[index];
+                return RideHistoryBlock(
+                  record: record,
+                  // date: record.date,
+                  // time: record.time,
+                  // pickup: record.pickup,
+                  // dropoff: record.dropoff,
+                  // amount: record.amount,
+                  onDelete: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text('Delete Record'),
+                        content: Text('Do you want to delete this record?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              deleteRecord((currentPage - 1) * recordsPerPage + index);
+                              Navigator.pop(context);
+                            },
+                            child: Text('Delete'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  onRate: showRatingPopup,
+                  onDetails: showDetailsPopup,
+                );
+              },
+            ),
+          ),
+          // Pagination Bar
+          Container(
+            color: Colors.purple,
+            padding: EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.arrow_left, color: Colors.white),
+                  onPressed: currentPage > 1
+                      ? () {
+                    setState(() {
+                      currentPage--;
+                    });
+                  }
+                      : null,
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: Text('$currentPage'),
+                ),
+                IconButton(
+                  icon: Icon(Icons.arrow_right, color: Colors.white),
+                  onPressed: currentPage < totalPages
+                      ? () {
+                    setState(() {
+                      currentPage++;
+                    });
+                  }
+                      : null,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 
 
