@@ -17,10 +17,7 @@ class PassengerProfile extends StatelessWidget {
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: AppColors.appBarBackground,
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false,
         title: Text(
           "Passenger Name",
           style: kHeadingText.copyWith(color: AppColors.primaryText),

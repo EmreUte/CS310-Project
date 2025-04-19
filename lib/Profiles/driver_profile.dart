@@ -15,10 +15,7 @@ class DriverProfile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false,
         title: Text(
           "Driver Name",
           style: kHeadingText.copyWith(color: AppColors.primaryText),
