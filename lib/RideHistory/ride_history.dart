@@ -132,17 +132,20 @@ class RideHistoryBlock extends StatelessWidget {
 }
 // Main Ride History Page
 class RideHistoryPage extends StatefulWidget {
+  const RideHistoryPage({super.key});
+
   @override
-  _RideHistoryPageState createState() => _RideHistoryPageState();
+  RideHistoryPageState createState() => RideHistoryPageState();
 }
 
-class _RideHistoryPageState extends State<RideHistoryPage> {
+class RideHistoryPageState extends State<RideHistoryPage> {
   List<RideRecord> rideRecords = [
     RideRecord(date: '10/05/2025', time: '14:28 - 15:17', pickup: 'Maltepe', dropoff: 'Tuzla', amount: '250 ₺'),
     RideRecord(date: '08/01/2025', time: '11:18 - 12:04', pickup: 'Kadıköy', dropoff: 'Kartal', amount: '350 ₺'),
     RideRecord(date: '24/11/2024', time: '18:40 - 19:25', pickup: 'Beyoğlu', dropoff: 'Fatih', amount: '300 ₺'),
     RideRecord(date: '13/07/2024', time: '21:24 - 23:33', pickup: 'Beşiktaş', dropoff: 'Karaköy', amount: '150 ₺'),
     RideRecord(date: '01/06/2024', time: '09:15 - 10:00', pickup: 'Şişli', dropoff: 'Levent', amount: '200 ₺'),
+    RideRecord(date: '01/05/2024', time: '09:15 - 10:00', pickup: 'Şişhane', dropoff: 'Topkapı', amount: '220 ₺'),
   ];
 
   int currentPage = 1;
@@ -284,11 +287,6 @@ class _RideHistoryPageState extends State<RideHistoryPage> {
                 final record = currentRecords[index];
                 return RideHistoryBlock(
                   record: record,
-                  // date: record.date,
-                  // time: record.time,
-                  // pickup: record.pickup,
-                  // dropoff: record.dropoff,
-                  // amount: record.amount,
                   onDelete: () {
                     showDialog(
                       context: context,
