@@ -4,7 +4,6 @@ import '../utils/dimensions.dart';
 import '../utils/styles.dart';
 import '../Settings/settings_page.dart';
 import '../RideHistory/ride_history.dart';
-import '../Preferences/preferences.dart';
 import '../RideMonitoring/finding_your_ride.dart';
 import '../preferences/driver_preferences.dart';
 
