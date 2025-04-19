@@ -40,7 +40,7 @@ class RideHistoryBlock extends StatelessWidget {
       margin: EdgeInsets.symmetric(vertical: 8.0),
       padding: EdgeInsets.all(8.0),
       decoration: BoxDecoration (
-        color: Colors.grey[200],
+        color: Color(0x141D1B20),
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column (
@@ -49,7 +49,7 @@ class RideHistoryBlock extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(8.0),
             decoration: BoxDecoration(
-              color: Colors.blue[900],
+              color: AppColors.buttonBackground,
               borderRadius: BorderRadius.circular(8.0),
             ),
             child: Row(
@@ -215,15 +215,16 @@ class RideHistoryPageState extends State<RideHistoryPage> {
         .toList();
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.purple,
+        backgroundColor: AppColors.appBarBackground,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
           onPressed: () {
             Navigator.pop(context); // Back navigation
           },
         ),
-        title: Text('Ride History', style: TextStyle(color: Colors.white)),
+        title: Text('Ride History', style: kAppBarText),
         centerTitle: true,
       ),
       body: Column(
@@ -245,7 +246,7 @@ class RideHistoryPageState extends State<RideHistoryPage> {
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: Color(0x141D1B20),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Row(
@@ -264,7 +265,7 @@ class RideHistoryPageState extends State<RideHistoryPage> {
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: Color(0x141D1B20),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Row(
@@ -317,8 +318,8 @@ class RideHistoryPageState extends State<RideHistoryPage> {
           ),
           // Pagination Bar
           Container(
-            color: Colors.purple,
-            padding: EdgeInsets.all(8.0),
+            color: AppColors.appBarBackground,
+            padding: EdgeInsets.all(10.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
