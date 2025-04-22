@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "83479089755",
+    "project_id": "myride-cs-310",
+    "storage_bucket": "myride-cs-310.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:83479089755:android:9e6ff9aacd041c7b15e57e",
+        "android_client_info": {
+          "package_name": "com.example.cs310_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA34-x7CRZpTWjEjJ5Ltv3L_u_OTdA6_94"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
