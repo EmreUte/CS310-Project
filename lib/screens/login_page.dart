@@ -1,9 +1,13 @@
 import 'package:cs310_project/utils/styles.dart';
+import 'package:cs310_project/utils/colors.dart';
+import 'package:cs310_project/utils/dimensions.dart';
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
 
-import '../utils/colors.dart';
-import '../utils/dimensions.dart';
+// Firebase imports
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,6 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -24,26 +29,51 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _handleLogin() {
-    if (_formKey.currentState!.validate()) {
-        Navigator.pushNamed(context, '/driver_profile');
-        // Direct login to profile pages
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+
+    try {
+      // Sign in with Firebase Auth
+      UserCredential cred = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Fetch user type from Firestore
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(cred.user!.uid)
+          .get();
+
+      final data = userDoc.data() as Map<String, dynamic>?;
+      final userType = data?['userType'] as String?;
+
+      // Navigate based on userType
+      if (userType == 'Driver') {
+        Navigator.pushReplacementNamed(context, '/driver_profile');
+      } else {
+        Navigator.pushReplacementNamed(context, '/passenger_profile');
+      }
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Login failed')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    backgroundColor: Colors.white,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Login',
-            style: kAppBarText,
-        ),
+        title: Text('Login', style: kAppBarText),
         leading: IconButton(
           icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
-          onPressed: () => {
-            Navigator.pop(context)
-          },
+          onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
         automaticallyImplyLeading: false,
@@ -55,7 +85,6 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Email Field
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
@@ -68,17 +97,12 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'This field cannot be empty';
-                  }
-                  if (!EmailValidator.validate(value)) {
-                    return 'Enter a valid email address';
-                  }
+                  if (value == null || value.isEmpty) return 'This field cannot be empty';
+                  if (!EmailValidator.validate(value)) return 'Enter a valid email';
                   return null;
                 },
               ),
               const SizedBox(height: 20),
-              // Password Field
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
@@ -91,28 +115,19 @@ class _LoginPageState extends State<LoginPage> {
                     borderSide: BorderSide.none,
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'This field cannot be empty';
-                  }
-                  return null;
-                },
+                validator: (value) => (value == null || value.isEmpty) ? 'This field cannot be empty' : null,
               ),
               const SizedBox(height: 40),
-              // Login Button
               ElevatedButton(
-                onPressed: _handleLogin,
+                onPressed: _isLoading ? null : _handleLogin,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.buttonBackground,
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                child: Text(
-                  'Login',
-                  style: kButtonText,
-                ),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : Text('Login', style: kButtonText),
               ),
             ],
           ),
