@@ -122,25 +122,29 @@ class _PassengerInformationScreenState
                   label: 'Name',
                   controller: _nameController,
                   icon: Icons.person,
+                  isEditable: false,
                 ),
                 const SizedBox(height: 22),
                 _buildInputField(
                   label: 'E-mail',
                   controller: _emailController,
                   icon: Icons.email,
+                  isEditable: false,
                 ),
                 const SizedBox(height: 22),
                 _buildInputField(
                   label: 'Phone',
                   controller: _phoneController,
                   icon: Icons.phone,
+                  isEditable: true,
                 ),
                 const SizedBox(height: 22),
                 _buildInputField(
-                  label: 'Password',
+                  label: 'New Password?',
                   controller: _passwordController,
                   icon: Icons.lock,
                   isPassword: true,
+                  isEditable: true,
                 ),
                 const SizedBox(height: 40),
                 Align(
@@ -207,23 +211,40 @@ class _PassengerInformationScreenState
     required TextEditingController controller,
     required IconData icon,
     bool isPassword = false,
+    bool isEditable = true,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
         controller: controller,
-        enabled: _isEditable,
+        enabled: _isEditable && isEditable,
         obscureText: isPassword,
         autocorrect: !isPassword,
         enableSuggestions: !isPassword,
+        style: TextStyle(
+          color: _isEditable && isEditable ? Colors.black : Colors.grey,
+        ),
+
         decoration: InputDecoration(
+
           label: SizedBox(
-            width: 120,
+            width: 180,
             child: Row(
               children: [
-                Icon(icon),
+// Update the Icon in the label Row
+                Icon(
+                  icon,
+                  color: _isEditable && isEditable ? Colors.black : Colors.grey,
+                ),
                 const SizedBox(width: 8),
-                Text(label,style: kFillerText),
+// Update the Text in the label Row
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: _isEditable && isEditable ? Colors.black : Colors.grey,
+                    fontSize: 16,
+                  ),
+                ),
               ],
             ),
           ),
@@ -238,12 +259,18 @@ class _PassengerInformationScreenState
             vertical: 12,
           ),
         ),
+        // In the _buildInputField method, replace the validator with:
         validator: (value) {
           if (value == null || value.isEmpty) {
+            // Make password field optional
+            if (isPassword) {
+              return null;
+            }
             return 'Please enter $label';
           }
           return null;
         },
+
         onSaved: (value) {
         },
       ),

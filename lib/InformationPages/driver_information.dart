@@ -127,31 +127,36 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
                   label: 'Name',
                   controller: _nameController,
                   icon: Icons.person,
+                  isEditable: false,
                 ),
                 const SizedBox(height: 22),
                 _buildInputField(
                   label: 'E-mail',
                   controller: _emailController,
                   icon: Icons.email,
+                  isEditable: false,
                 ),
                 const SizedBox(height: 22),
                 _buildInputField(
                   label: 'Phone',
                   controller: _phoneController,
                   icon: Icons.phone,
+                  isEditable: true,
                 ),
                 const SizedBox(height: 22),
                 _buildInputField(
-                  label: 'Password',
+                  label: 'New Password?',
                   controller: _passwordController,
                   icon: Icons.lock,
                   isPassword: true,
+                  isEditable: true,
                 ),
                 const SizedBox(height: 22),
                 _buildInputField(
                   label: 'Plate Number',
                   controller: _plateController,
-                  isPassword: true,
+                  isPassword: false,
+                  isEditable: true,
                 ),
                 const SizedBox(height: 3),
                 Align(
@@ -220,21 +225,29 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
     required TextEditingController controller,
     IconData? icon,
     bool isPassword = false,
+    bool isEditable = true,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
         controller: controller,
-        enabled: _isEditable,
+        enabled: _isEditable && isEditable,
         obscureText: isPassword,
         autocorrect: !isPassword,
         enableSuggestions: !isPassword,
+
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: AppColors.secondaryText),
+          labelStyle: TextStyle(
+            color: _isEditable && isEditable ? Colors.black : Colors.grey,
+          ),
           prefixIcon: icon != null
-              ? Icon(icon, color: AppColors.secondaryText)
+              ? Icon(
+            icon,
+            color: _isEditable && isEditable ? Colors.black : Colors.grey,
+          )
               : const SizedBox(width: 24),
+
           filled: true,
           fillColor: const Color(0xFFD9D9D9),
           border: OutlineInputBorder(
@@ -246,15 +259,21 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
             vertical: 12,
           ),
         ),
-        style: const TextStyle(color: AppColors.secondaryText),
+        style: TextStyle(
+          color: _isEditable && isEditable ? Colors.black : Colors.grey,
+        ),
 
 
         validator: (value) {
           if (value == null || value.isEmpty) {
+            if (isPassword) {
+              return null;
+            }
             return 'Please enter $label';
           }
           return null;
         },
+
         onSaved: (value) {
 
         },
