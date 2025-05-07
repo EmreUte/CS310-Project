@@ -6,20 +6,61 @@ import '../Settings/settings_page.dart';
 import '../RideHistory/ride_history.dart';
 import '../RideMonitoring/finding_your_ride.dart';
 import '../preferences/driver_preferences.dart';
+import '../services/database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class DriverProfile extends StatelessWidget {
+
+class DriverProfile extends StatefulWidget {
   const DriverProfile({super.key});
 
   @override
+  State<DriverProfile> createState() => _DriverProfileState();
+}
+
+class _DriverProfileState extends State<DriverProfile> {
+  final DatabaseService _databaseService = DatabaseService();
+  String userName = "Driver";
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      DocumentSnapshot? userData = await _databaseService.getUserData();
+      if (userData != null && userData.exists) {
+        setState(() {
+          userName = userData.get('name') ?? "Driver";
+        });
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(
-          "Driver Name",
+        title: isLoading
+            ? const CircularProgressIndicator()
+            : Text(
+          userName,
           style: kHeadingText.copyWith(color: AppColors.primaryText),
         ),
+
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -33,9 +74,11 @@ class DriverProfile extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 90),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 90),
 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -114,11 +157,6 @@ class DriverProfile extends StatelessWidget {
       ],
     );
   }
-
-
-
-
-
 
   Widget _buildButton(BuildContext context, String label, Widget page) {
     return SizedBox(

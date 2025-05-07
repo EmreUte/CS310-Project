@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/dimensions.dart';
 import '../utils/styles.dart';
+import '../services/database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class DriverInformationScreen extends StatefulWidget {
   const DriverInformationScreen({super.key});
@@ -12,6 +15,9 @@ class DriverInformationScreen extends StatefulWidget {
 }
 
 class _DriverInformationScreen extends State<DriverInformationScreen>{
+  bool _isLoading = true;
+  final DatabaseService _databaseService = DatabaseService();
+
   bool _isEditable = false;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
@@ -22,6 +28,60 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
 
 
   @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      DocumentSnapshot? userData = await _databaseService.getUserData();
+      if (userData != null && userData.exists) {
+        setState(() {
+          _nameController.text = userData.get('name') ?? '';
+          _emailController.text = userData.get('email') ?? '';
+          _phoneController.text = userData.get('phone') ?? '';
+          _plateController.text = userData.get('plateNumber') ?? '';
+        });
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _saveUserData() async {
+    try {
+      await _databaseService.updateUserData(
+        name: _nameController.text,
+        email: _emailController.text,
+        phone: _phoneController.text,
+        plateNumber: _plateController.text,
+      );
+
+      if (_passwordController.text.isNotEmpty) {
+        await _databaseService.updatePassword(_passwordController.text);
+        _passwordController.clear();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Information updated successfully')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating information: $e')),
+      );
+    }
+  }
+
+
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
@@ -50,7 +110,9 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
 
       ),
 
-      body: SingleChildScrollView(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 20),
           child: Form(
@@ -101,10 +163,15 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
                         if (!_isEditable) {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
+                            _saveUserData();
+                          } else {
+                            // If validation fails, keep in edit mode
+                            _isEditable = true;
                           }
                         }
                       });
                     },
+
                     style: ElevatedButton.styleFrom(
 
                       backgroundColor: AppColors.buttonBackground,

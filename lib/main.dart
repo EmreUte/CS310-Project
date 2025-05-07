@@ -14,7 +14,10 @@ import 'RideMonitoring/finding_your_ride.dart';
 import 'preferences/passenger_preferences.dart';
 import 'preferences/driver_preferences.dart';
 import 'Settings/settings_page.dart';
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 

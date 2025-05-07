@@ -6,11 +6,48 @@ import '../RideHistory/ride_history.dart';
 import '../Preferences/passenger_preferences.dart';
 import '../RideMonitoring/finding_your_ride.dart';
 import '../digital_payments/digital_payments_page.dart';
+import '../services/database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class PassengerProfile extends StatelessWidget {
+
+class PassengerProfile extends StatefulWidget {
   const PassengerProfile({super.key});
 
   @override
+  State<PassengerProfile> createState() => _PassengerProfileState();
+}
+
+class _PassengerProfileState extends State<PassengerProfile> {
+  final DatabaseService _databaseService = DatabaseService();
+  String userName = "Passenger";
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      DocumentSnapshot? userData = await _databaseService.getUserData();
+      if (userData != null && userData.exists) {
+        setState(() {
+          userName = userData.get('name') ?? "Passenger";
+        });
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
@@ -18,10 +55,13 @@ class PassengerProfile extends StatelessWidget {
         centerTitle: true,
         backgroundColor: AppColors.appBarBackground,
         automaticallyImplyLeading: false,
-        title: Text(
-          "Passenger Name",
+        title: isLoading
+            ? const CircularProgressIndicator()
+            : Text(
+          userName,
           style: kHeadingText.copyWith(color: AppColors.primaryText),
         ),
+
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -35,7 +75,9 @@ class PassengerProfile extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 40),
           child: Column(
@@ -125,14 +167,6 @@ class PassengerProfile extends StatelessWidget {
       ],
     );
   }
-
-
-
-
-
-
-
-
 
   Widget _buildButton(BuildContext context, String label, Widget page) {
     return SizedBox(
