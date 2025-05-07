@@ -5,6 +5,10 @@ import '../utils/dimensions.dart';
 import '../utils/styles.dart';
 import 'login_page.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
 
@@ -14,14 +18,12 @@ class RegistrationPage extends StatefulWidget {
 
 class _RegistrationPageState extends State<RegistrationPage> {
   final _formKey = GlobalKey<FormState>();
-
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  // Store the selected user type from the dropdown
   String? selectedUserType;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -32,13 +34,42 @@ class _RegistrationPageState extends State<RegistrationPage> {
     super.dispose();
   }
 
-  void _handleRegistration() {
-    if (_formKey.currentState!.validate()) {
-      // All validations passed; navigate to Login Page.
+  Future<void> _handleRegistration() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (selectedUserType == null) return;
+    setState(() => _isLoading = true);
+
+    try {
+      // Create user in Firebase Auth
+      UserCredential cred = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Store additional user info in Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(cred.user!.uid)
+          .set({
+        'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'userType': selectedUserType,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // Navigate to Login
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
+        MaterialPageRoute(builder: (_) => const LoginPage()),
       );
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Registration failed')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -47,15 +78,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(
-            'Registration',
-            style: kAppBarText,
-        ),
+        title: Text('Registration', style: kAppBarText),
         leading: IconButton(
           icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
-          onPressed: () => {
-            Navigator.pop(context)
-          },
+          onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
         automaticallyImplyLeading: false,
@@ -67,62 +93,43 @@ class _RegistrationPageState extends State<RegistrationPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Name Field
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.grey[300],
                   hintText: 'Enter your name',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                 ),
-                validator: (value) =>
-                (value == null || value.isEmpty) ? 'This field cannot be empty' : null,
+                validator: (value) => (value == null || value.isEmpty) ? 'This field cannot be empty' : null,
               ),
               const SizedBox(height: 20),
-              // Email Field
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.grey[300],
                   hintText: 'Enter your email',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'This field cannot be empty';
-                  }
-                  if (!EmailValidator.validate(value)) {
-                    return 'Enter a valid email address';
-                  }
+                  if (value == null || value.isEmpty) return 'This field cannot be empty';
+                  if (!EmailValidator.validate(value)) return 'Enter a valid email';
                   return null;
                 },
               ),
               const SizedBox(height: 20),
-              // Phone Field
               TextFormField(
                 controller: _phoneController,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.grey[300],
                   hintText: 'Enter your phone number',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                 ),
-                validator: (value) =>
-                (value == null || value.isEmpty) ? 'This field cannot be empty' : null,
+                validator: (value) => (value == null || value.isEmpty) ? 'This field cannot be empty' : null,
               ),
               const SizedBox(height: 20),
-              // Password Field
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
@@ -130,64 +137,37 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   filled: true,
                   fillColor: Colors.grey[300],
                   hintText: 'Enter your password',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                 ),
-                validator: (value) =>
-                (value == null || value.isEmpty) ? 'This field cannot be empty' : null,
+                validator: (value) => (value == null || value.isEmpty) ? 'This field cannot be empty' : null,
               ),
               const SizedBox(height: 20),
-              // User Type Selection using DropdownButtonFormField
               DropdownButtonFormField<String>(
                 value: selectedUserType,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.grey[300],
                   hintText: 'Select User Type',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                 ),
                 items: const [
-                  DropdownMenuItem(
-                    value: 'Driver',
-                    child: Text('Driver'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Passenger',
-                    child: Text('Passenger'),
-                  ),
+                  DropdownMenuItem(value: 'Driver', child: Text('Driver')),
+                  DropdownMenuItem(value: 'Passenger', child: Text('Passenger')),
                 ],
-                onChanged: (value) {
-                  setState(() {
-                    selectedUserType = value;
-                  });
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select a user type';
-                  }
-                  return null;
-                },
+                onChanged: (v) => setState(() => selectedUserType = v),
+                validator: (value) => (value == null || value.isEmpty) ? 'Please select a user type' : null,
               ),
               const SizedBox(height: 40),
-              // Register Button
               ElevatedButton(
-                onPressed: _handleRegistration,
+                onPressed: _isLoading ? null : _handleRegistration,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.buttonBackground,
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                child: Text(
-                  'Register',
-                  style: kButtonText,
-                ),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : Text('Register', style: kButtonText),
               ),
             ],
           ),
