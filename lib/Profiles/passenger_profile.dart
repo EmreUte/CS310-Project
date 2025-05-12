@@ -11,7 +11,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class PassengerProfile extends StatefulWidget {
-  const PassengerProfile({super.key});
+  final String uid;
+  const PassengerProfile({required this.uid, super.key});
 
   @override
   State<PassengerProfile> createState() => _PassengerProfileState();

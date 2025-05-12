@@ -11,7 +11,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class DriverProfile extends StatefulWidget {
-  const DriverProfile({super.key});
+  final String uid;
+
+  const DriverProfile({required this.uid, super.key});
 
   @override
   State<DriverProfile> createState() => _DriverProfileState();
