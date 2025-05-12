@@ -2,6 +2,9 @@ import 'package:cs310_project/utils/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/colors.dart';
+import '../services/navigation_service.dart';
+import '../services/database.dart';
+
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -15,6 +18,8 @@ class SettingsPageState extends State<SettingsPage> {
   bool _darkTheme = false;
   String _language = 'English';
   String _textSize = 'Medium';
+  final NavigationService _navigationService = NavigationService();
+
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +39,11 @@ class SettingsPageState extends State<SettingsPage> {
         children: [
           // Account Section
           _sectionHeader('Account'),
-          _settingsTile('Personal information', Icon(Icons.play_arrow), () => Navigator.pushNamed(context, '/driver_information')),
+          _settingsTile(
+              'Personal information',
+              Icon(Icons.play_arrow),
+                  () => _navigationService.navigateToCorrectInformationPage(context)
+          ),
           _settingsTile('Request account info', Icon(Icons.play_arrow)),
           _settingsTile('Delete account', Icon(Icons.play_arrow)),
 

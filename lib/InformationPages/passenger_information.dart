@@ -3,6 +3,9 @@ import '../utils/colors.dart';
 import '../Settings/settings_page.dart';
 import '../utils/dimensions.dart';
 import '../utils/styles.dart';
+import '../services/database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class PassengerInformationScreen extends StatefulWidget {
   const PassengerInformationScreen({super.key});
@@ -14,6 +17,10 @@ class PassengerInformationScreen extends StatefulWidget {
 
 class _PassengerInformationScreenState
     extends State<PassengerInformationScreen> {
+  bool _isLoading = true;
+  final DatabaseService _databaseService = DatabaseService();
+
+
   bool _isEditable = false;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
@@ -22,6 +29,57 @@ class _PassengerInformationScreenState
   final TextEditingController _passwordController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      DocumentSnapshot? userData = await _databaseService.getUserData();
+      if (userData != null && userData.exists) {
+        setState(() {
+          _nameController.text = userData.get('name') ?? '';
+          _emailController.text = userData.get('email') ?? '';
+          _phoneController.text = userData.get('phone') ?? '';
+        });
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _saveUserData() async {
+    try {
+      await _databaseService.updateUserData(
+        name: _nameController.text,
+        email: _emailController.text,
+        phone: _phoneController.text,
+      );
+
+      if (_passwordController.text.isNotEmpty) {
+        await _databaseService.updatePassword(_passwordController.text);
+        _passwordController.clear();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Information updated successfully')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating information: $e')),
+      );
+    }
+  }
+
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
@@ -46,8 +104,11 @@ class _PassengerInformationScreenState
         ),
 
       ),
-      body: SingleChildScrollView(
-        child: Padding(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+
+      child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 20),
           child: Form(
             key: _formKey,
@@ -61,25 +122,29 @@ class _PassengerInformationScreenState
                   label: 'Name',
                   controller: _nameController,
                   icon: Icons.person,
+                  isEditable: false,
                 ),
                 const SizedBox(height: 22),
                 _buildInputField(
                   label: 'E-mail',
                   controller: _emailController,
                   icon: Icons.email,
+                  isEditable: false,
                 ),
                 const SizedBox(height: 22),
                 _buildInputField(
                   label: 'Phone',
                   controller: _phoneController,
                   icon: Icons.phone,
+                  isEditable: true,
                 ),
                 const SizedBox(height: 22),
                 _buildInputField(
-                  label: 'Password',
+                  label: 'New Password?',
                   controller: _passwordController,
                   icon: Icons.lock,
                   isPassword: true,
+                  isEditable: true,
                 ),
                 const SizedBox(height: 40),
                 Align(
@@ -91,10 +156,15 @@ class _PassengerInformationScreenState
                         if (!_isEditable) {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
+                            _saveUserData();
+                          } else {
+                            // If validation fails, keep in edit mode
+                            _isEditable = true;
                           }
                         }
                       });
                     },
+
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.buttonBackground,
                       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14), // width!
@@ -141,23 +211,40 @@ class _PassengerInformationScreenState
     required TextEditingController controller,
     required IconData icon,
     bool isPassword = false,
+    bool isEditable = true,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
         controller: controller,
-        enabled: _isEditable,
+        enabled: _isEditable && isEditable,
         obscureText: isPassword,
         autocorrect: !isPassword,
         enableSuggestions: !isPassword,
+        style: TextStyle(
+          color: _isEditable && isEditable ? Colors.black : Colors.grey,
+        ),
+
         decoration: InputDecoration(
+
           label: SizedBox(
-            width: 120,
+            width: 180,
             child: Row(
               children: [
-                Icon(icon),
+// Update the Icon in the label Row
+                Icon(
+                  icon,
+                  color: _isEditable && isEditable ? Colors.black : Colors.grey,
+                ),
                 const SizedBox(width: 8),
-                Text(label,style: kFillerText),
+// Update the Text in the label Row
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: _isEditable && isEditable ? Colors.black : Colors.grey,
+                    fontSize: 16,
+                  ),
+                ),
               ],
             ),
           ),
@@ -172,12 +259,18 @@ class _PassengerInformationScreenState
             vertical: 12,
           ),
         ),
+        // In the _buildInputField method, replace the validator with:
         validator: (value) {
           if (value == null || value.isEmpty) {
+            // Make password field optional
+            if (isPassword) {
+              return null;
+            }
             return 'Please enter $label';
           }
           return null;
         },
+
         onSaved: (value) {
         },
       ),

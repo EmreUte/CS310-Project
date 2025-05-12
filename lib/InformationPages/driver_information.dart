@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/dimensions.dart';
 import '../utils/styles.dart';
+import '../services/database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class DriverInformationScreen extends StatefulWidget {
   const DriverInformationScreen({super.key});
@@ -12,6 +15,9 @@ class DriverInformationScreen extends StatefulWidget {
 }
 
 class _DriverInformationScreen extends State<DriverInformationScreen>{
+  bool _isLoading = true;
+  final DatabaseService _databaseService = DatabaseService();
+
   bool _isEditable = false;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
@@ -22,6 +28,60 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
 
 
   @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      DocumentSnapshot? userData = await _databaseService.getUserData();
+      if (userData != null && userData.exists) {
+        setState(() {
+          _nameController.text = userData.get('name') ?? '';
+          _emailController.text = userData.get('email') ?? '';
+          _phoneController.text = userData.get('phone') ?? '';
+          _plateController.text = userData.get('plateNumber') ?? '';
+        });
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _saveUserData() async {
+    try {
+      await _databaseService.updateUserData(
+        name: _nameController.text,
+        email: _emailController.text,
+        phone: _phoneController.text,
+        plateNumber: _plateController.text,
+      );
+
+      if (_passwordController.text.isNotEmpty) {
+        await _databaseService.updatePassword(_passwordController.text);
+        _passwordController.clear();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Information updated successfully')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating information: $e')),
+      );
+    }
+  }
+
+
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
@@ -50,7 +110,9 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
 
       ),
 
-      body: SingleChildScrollView(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 20),
           child: Form(
@@ -65,31 +127,36 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
                   label: 'Name',
                   controller: _nameController,
                   icon: Icons.person,
+                  isEditable: false,
                 ),
                 const SizedBox(height: 22),
                 _buildInputField(
                   label: 'E-mail',
                   controller: _emailController,
                   icon: Icons.email,
+                  isEditable: false,
                 ),
                 const SizedBox(height: 22),
                 _buildInputField(
                   label: 'Phone',
                   controller: _phoneController,
                   icon: Icons.phone,
+                  isEditable: true,
                 ),
                 const SizedBox(height: 22),
                 _buildInputField(
-                  label: 'Password',
+                  label: 'New Password?',
                   controller: _passwordController,
                   icon: Icons.lock,
                   isPassword: true,
+                  isEditable: true,
                 ),
                 const SizedBox(height: 22),
                 _buildInputField(
                   label: 'Plate Number',
                   controller: _plateController,
-                  isPassword: true,
+                  isPassword: false,
+                  isEditable: true,
                 ),
                 const SizedBox(height: 3),
                 Align(
@@ -101,10 +168,15 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
                         if (!_isEditable) {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
+                            _saveUserData();
+                          } else {
+                            // If validation fails, keep in edit mode
+                            _isEditable = true;
                           }
                         }
                       });
                     },
+
                     style: ElevatedButton.styleFrom(
 
                       backgroundColor: AppColors.buttonBackground,
@@ -153,21 +225,29 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
     required TextEditingController controller,
     IconData? icon,
     bool isPassword = false,
+    bool isEditable = true,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
         controller: controller,
-        enabled: _isEditable,
+        enabled: _isEditable && isEditable,
         obscureText: isPassword,
         autocorrect: !isPassword,
         enableSuggestions: !isPassword,
+
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: AppColors.secondaryText),
+          labelStyle: TextStyle(
+            color: _isEditable && isEditable ? Colors.black : Colors.grey,
+          ),
           prefixIcon: icon != null
-              ? Icon(icon, color: AppColors.secondaryText)
+              ? Icon(
+            icon,
+            color: _isEditable && isEditable ? Colors.black : Colors.grey,
+          )
               : const SizedBox(width: 24),
+
           filled: true,
           fillColor: const Color(0xFFD9D9D9),
           border: OutlineInputBorder(
@@ -179,15 +259,21 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
             vertical: 12,
           ),
         ),
-        style: const TextStyle(color: AppColors.secondaryText),
+        style: TextStyle(
+          color: _isEditable && isEditable ? Colors.black : Colors.grey,
+        ),
 
 
         validator: (value) {
           if (value == null || value.isEmpty) {
+            if (isPassword) {
+              return null;
+            }
             return 'Please enter $label';
           }
           return null;
         },
+
         onSaved: (value) {
 
         },
