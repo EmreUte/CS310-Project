@@ -54,7 +54,7 @@ class _LoginPageState extends State<LoginPage> {
       if (userType == 'Driver') {
         Navigator.pushReplacementNamed(context, '/driver_profile');
       } else {
-        Navigator.pushReplacementNamed(context, '/add_new_payment');
+        Navigator.pushReplacementNamed(context, '/passenger_profile');
       }
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

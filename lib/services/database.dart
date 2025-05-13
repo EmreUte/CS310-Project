@@ -77,9 +77,9 @@ class DatabaseService {
         name: snapshot['name'],
         email: snapshot['email'],
         phone: snapshot['phone'],
-        plateNumber: snapshot['plateNumber'] ?? '',
+        plateNumber: snapshot['plateNumber'],
         userType: snapshot['userType'],
-        cardCount: snapshot['cardCount'] ?? 0,
+        cardCount: snapshot['cardCount'],
     );
   }
 

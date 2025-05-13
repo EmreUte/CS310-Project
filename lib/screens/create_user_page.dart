@@ -56,6 +56,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
         'email': _emailController.text.trim(),
         'phone': _phoneController.text.trim(),
         'userType': selectedUserType,
+        'plateNumber': "AB 280 FF",
+        'cardCount': 0,
         'createdAt': FieldValue.serverTimestamp(),
       });
 

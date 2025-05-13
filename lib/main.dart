@@ -52,6 +52,8 @@ class MyApp extends StatelessWidget {
                     '/': (context) => const Wrapper(),
                     '/add_new_payment': (context) => AddNewCard(),
                     '/driver_information': (context) => DriverInformationScreen(),
+                    '/passenger_profile': (context) => PassengerProfile(),
+                    '/driver_profile': (context) => DriverProfile(),
                     '/passenger_information': (context) => PassengerInformationScreen(),
                     '/driver_preferences': (context) => DriverPreferencesScreen(),
                     '/passenger_preferences': (context) => PassengerPreferencesScreen(),

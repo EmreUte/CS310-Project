@@ -1,5 +1,6 @@
 import 'package:cs310_project/digital_payments/components/credit_card.dart';
 import 'package:cs310_project/services/database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -26,9 +27,9 @@ class _CardListState extends State<CardList> {
   }
   @override
   Widget build(BuildContext context) {
-    final cards = Provider.of<List<CreditCardBlock>?>(context);
-    final user = Provider.of<MyUser?>(context);
-    final dbService = DatabaseService(uid: user!.uid);
+    final List<CreditCard>? cards = Provider.of<List<CreditCard>?>(context);
+    final user = Provider.of<MyUser>(context);
+    final dbService = DatabaseService(uid: user.uid);
     return Padding(
       padding: Dimen.screenPadding,
       child: Column(
@@ -52,16 +53,17 @@ class _CardListState extends State<CardList> {
             ],
           ),
           SizedBox(height: 10),
-          Column(
-            children: cards!.map((card) => CreditCardBlock(
-              card: card.card,
-              mode: inEdit,
-              delete: () {
-                dbService.removeCreditCard(card.card.id);
-              },
-            )
-            ).toList(),
-          ),
+          if (cards != null)
+            Column(
+              children: cards.map((card) => CreditCardBlock(
+                card: card,
+                mode: inEdit,
+                delete: () {
+                  dbService.removeCreditCard(card.id);
+                },
+              )
+              ).toList(),
+            ),
           SizedBox(height: 20),
           Row(
             children: [
@@ -69,7 +71,13 @@ class _CardListState extends State<CardList> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => AddNewCard()),
+                    MaterialPageRoute(
+                      builder: (context) => StreamProvider<UserModel?>.value(
+                      value: dbService.userData,
+                      initialData: null,
+                      child: AddNewCard(),
+                      ),
+                    )
                   );
                 },
                 icon: Icon(
