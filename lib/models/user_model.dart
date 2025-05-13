@@ -1,3 +1,11 @@
+import '../digital_payments/components/credit_card.dart';
+
+class MyUser {
+  final String uid;
+
+  MyUser({required this.uid});
+}
+
 class UserModel {
   final String uid;
   final String name;
@@ -5,6 +13,7 @@ class UserModel {
   final String phone;
   final String? plateNumber;
   final String userType; // 'Driver' or 'Passenger'
+  final List<CreditCard>? creditInfo;
 
   UserModel({
     required this.uid,
@@ -13,26 +22,6 @@ class UserModel {
     required this.phone,
     this.plateNumber,
     required this.userType,
+    this.creditInfo,
   });
-
-  factory UserModel.fromMap(Map<String, dynamic> data, String id) {
-    return UserModel(
-      uid: id,
-      name: data['name'] ?? '',
-      email: data['email'] ?? '',
-      phone: data['phone'] ?? '',
-      plateNumber: data['plateNumber'],
-      userType: data['userType'] ?? 'Passenger',
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'email': email,
-      'phone': phone,
-      'plateNumber': plateNumber,
-      'userType': userType,
-    };
-  }
 }

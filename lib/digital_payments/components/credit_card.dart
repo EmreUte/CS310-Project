@@ -5,11 +5,24 @@ import '../../utils/styles.dart';
 import '../../utils/dimensions.dart';
 
 class CreditCard {
+  String cid;
   String name;
   String number;
+  String month;
+  String year;
   bool type; // true for Mastercard, false for Visa
 
-  CreditCard({required this.name, required this.number, required this.type});
+  Map<String, dynamic> toMap() => {
+    'id': cid,
+    'name': name,
+    'number': number,
+    'month': month,
+    'year': year,
+    'type': type
+  };
+
+  CreditCard({required this.cid, required this.name, required this.number,
+              required this.month, required this.year, required this.type});
 }
 
 class CreditCardBlock extends StatelessWidget {

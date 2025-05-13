@@ -19,7 +19,6 @@ import 'package:cs310_project/utils/colors.dart';
 import 'RideMonitoring/finding_your_ride.dart';
 import 'preferences/passenger_preferences.dart';
 import 'preferences/driver_preferences.dart';
-import 'Settings/settings_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -42,7 +41,7 @@ class MyApp extends StatelessWidget {
 
         // Once complete, show your application
         if (snapshot.connectionState == ConnectionState.done) {
-          return StreamProvider<UserModel?>.value(
+          return StreamProvider<MyUser?>.value(
               value: AuthService().user,
               initialData: null,
               child: MaterialApp(
@@ -57,7 +56,6 @@ class MyApp extends StatelessWidget {
                     '/driver_preferences': (context) => DriverPreferencesScreen(),
                     '/passenger_preferences': (context) => PassengerPreferencesScreen(),
                     '/finding_your_ride': (context) => FindingRideScreen(),
-                    '/settings_page': (context) => SettingsPage(),
                     '/help_page': (context) => HelpScreen(),
                     '/faq_page': (context) => FaqScreen(),
                   },
@@ -78,6 +76,7 @@ class MyApp extends StatelessWidget {
             home: LoadingPage());
       },
     );
+    /*
     return MaterialApp(
       title: 'MyRide',
       debugShowCheckedModeBanner: false,
@@ -105,5 +104,6 @@ class MyApp extends StatelessWidget {
         ),
       ),
     );
+    */
   }
 }

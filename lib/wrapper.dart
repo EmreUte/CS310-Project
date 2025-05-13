@@ -1,5 +1,6 @@
 import 'package:cs310_project/Profiles/driver_profile.dart';
 import 'package:cs310_project/Profiles/passenger_profile.dart';
+import 'package:cs310_project/digital_payments/digital_payments_page.dart';
 import 'package:cs310_project/screens/welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +20,7 @@ class Wrapper extends StatelessWidget {
       return WelcomePage();
     }
     else {
-      return user.userType == 'Driver' ? DriverProfile(uid: user.uid) : PassengerProfile(uid: user.uid);
+      return user.userType == 'Driver' ? DriverProfile(uid: user.uid) : CreditCardScreen();
     }
   }
 }
