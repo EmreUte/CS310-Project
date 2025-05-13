@@ -20,6 +20,7 @@ class DatabaseService {
     String? phone,
     String? plateNumber,
     String? userType,
+    int? cardCount,
   }) async {
       return await userCollection.doc(uid).set({
         'name': name ?? '',
@@ -27,6 +28,7 @@ class DatabaseService {
         'phone': phone ?? '',
         'plateNumber': plateNumber ?? '',
         'userType': userType ?? '',
+        'cardCount': cardCount ?? 0,
       });
   }
 
@@ -35,7 +37,7 @@ class DatabaseService {
     return await userCollection
         .doc(uid)
         .collection('payment_methods')
-        .doc(card.cid)
+        .doc(card.id)
         .set(card.toMap());
   }
 
@@ -50,30 +52,34 @@ class DatabaseService {
   List<CreditCard> _cardListFromSnapshot(QuerySnapshot snapshot) {
     return snapshot.docs.map((doc) {
       return CreditCard(
-        cid: doc['id'] ?? '',
+        id: doc['id'] ?? '',
         name: doc['name'] ?? '',
         number: doc['number'] ?? '',
         month: doc['month'] ?? '',
         year: doc['year'] ?? '',
-        type: doc['type'] ?? 'mastercard',
+        type: doc['type'] ?? true,
       );
     }).toList();
   }
 
-  // get gifts stream
+  // get cards stream
   Stream<List<CreditCard>> get cards {
-    return userCollection.snapshots()
+    return userCollection
+        .doc(uid)
+        .collection('payment_methods')
+        .snapshots()
         .map(_cardListFromSnapshot);
   }
 
-  UserModel  _userDataFromSnapshot(DocumentSnapshot snapshot) {
+  UserModel _userDataFromSnapshot(DocumentSnapshot snapshot) {
     return UserModel(
         uid: uid,
         name: snapshot['name'],
         email: snapshot['email'],
         phone: snapshot['phone'],
         plateNumber: snapshot['plateNumber'] ?? '',
-        userType: snapshot['userType']
+        userType: snapshot['userType'],
+        cardCount: snapshot['cardCount'] ?? 0,
     );
   }
 

@@ -1,11 +1,15 @@
+import 'package:cs310_project/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 
 import 'dart:io' show Platform;
 
+import '../services/database.dart';
 import '../utils/colors.dart';
 import '../utils/dimensions.dart';
 import '../utils/styles.dart';
+import 'components/credit_card.dart';
 
 
 class AddNewCard extends StatefulWidget {
@@ -17,8 +21,8 @@ class AddNewCard extends StatefulWidget {
 
 class _AddNewCardState extends State<AddNewCard> {
   final _formKey = GlobalKey<FormState>();
-  String cardNumber = "";
   String cardName = "";
+  String cardNumber = "";
   String cardMonth = "";
   String cardYear = "";
   bool hasSubmitted = false;
@@ -56,10 +60,14 @@ class _AddNewCardState extends State<AddNewCard> {
         );
   }
 
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final user = Provider.of<MyUser>(context);
+    final dbService = DatabaseService(uid: user.uid);
+    return StreamProvider<List<CreditCard>?>.value(
+        value: dbService.cards,
+        initialData: null,
+        child: Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: AppColors.appBarBackground,
@@ -254,7 +262,20 @@ class _AddNewCardState extends State<AddNewCard> {
                             const SnackBar(content: Text('Processing Data')),
                           );
                           _formKey.currentState!.save();
-                        } else {
+                          UserModel userdata = Provider.of<UserModel>(context);
+                          dbService.addCreditCard(
+                              CreditCard (
+                                  id: userdata.cardCount.toString(),
+                                  name: cardName,
+                                  number: cardNumber,
+                                  month: cardMonth,
+                                  year: cardYear,
+                                  type: true
+                              )
+                          );
+                          dbService.updateUserData(cardCount: userdata.cardCount !+ 1);
+                        }
+                        else {
                           String errorMessage = 'Try again with valid card information';
                           if (tickVal == false) {
                             errorMessage = 'Try again with valid card information and agree to the Terms & Conditions';
@@ -280,6 +301,7 @@ class _AddNewCardState extends State<AddNewCard> {
             ),
           ),
         ),
+      )
     );
   }
 

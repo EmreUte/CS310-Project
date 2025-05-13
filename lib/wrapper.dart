@@ -20,7 +20,7 @@ class Wrapper extends StatelessWidget {
       return WelcomePage();
     }
     else {
-      return user.userType == 'Driver' ? DriverProfile(uid: user.uid) : CreditCardScreen();
+      return user.userType == 'Driver' ? DriverProfile() : CreditCardScreen();
     }
   }
 }

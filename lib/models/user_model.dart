@@ -13,7 +13,7 @@ class UserModel {
   final String phone;
   final String? plateNumber;
   final String userType; // 'Driver' or 'Passenger'
-  final List<CreditCard>? creditInfo;
+  final int? cardCount;
 
   UserModel({
     required this.uid,
@@ -22,6 +22,6 @@ class UserModel {
     required this.phone,
     this.plateNumber,
     required this.userType,
-    this.creditInfo,
+    this.cardCount,
   });
 }

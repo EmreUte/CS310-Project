@@ -57,7 +57,7 @@ class _CardListState extends State<CardList> {
               card: card.card,
               mode: inEdit,
               delete: () {
-                dbService.removeCreditCard(card.card.cid);
+                dbService.removeCreditCard(card.card.id);
               },
             )
             ).toList(),

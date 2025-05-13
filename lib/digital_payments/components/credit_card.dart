@@ -5,7 +5,7 @@ import '../../utils/styles.dart';
 import '../../utils/dimensions.dart';
 
 class CreditCard {
-  String cid;
+  String id;
   String name;
   String number;
   String month;
@@ -13,7 +13,7 @@ class CreditCard {
   bool type; // true for Mastercard, false for Visa
 
   Map<String, dynamic> toMap() => {
-    'id': cid,
+    'id': id,
     'name': name,
     'number': number,
     'month': month,
@@ -21,7 +21,7 @@ class CreditCard {
     'type': type
   };
 
-  CreditCard({required this.cid, required this.name, required this.number,
+  CreditCard({required this.id, required this.name, required this.number,
               required this.month, required this.year, required this.type});
 }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/user_model.dart';
 import '../utils/colors.dart';
-import '../Settings/settings_page.dart';
 import '../utils/dimensions.dart';
 import '../utils/styles.dart';
 import '../services/database.dart';
@@ -15,12 +16,7 @@ class PassengerInformationScreen extends StatefulWidget {
       _PassengerInformationScreenState();
 }
 
-class _PassengerInformationScreenState
-    extends State<PassengerInformationScreen> {
-  bool _isLoading = true;
-  final DatabaseService _databaseService = DatabaseService();
-
-
+class _PassengerInformationScreenState extends State<PassengerInformationScreen> {
   bool _isEditable = false;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
@@ -29,57 +25,6 @@ class _PassengerInformationScreenState
   final TextEditingController _passwordController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    _loadUserData();
-  }
-
-  Future<void> _loadUserData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      DocumentSnapshot? userData = await _databaseService.getUserData();
-      if (userData != null && userData.exists) {
-        setState(() {
-          _nameController.text = userData.get('name') ?? '';
-          _emailController.text = userData.get('email') ?? '';
-          _phoneController.text = userData.get('phone') ?? '';
-        });
-      }
-    } catch (e) {
-      print('Error loading user data: $e');
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _saveUserData() async {
-    try {
-      await _databaseService.updateUserData(
-        name: _nameController.text,
-        email: _emailController.text,
-        phone: _phoneController.text,
-      );
-
-      if (_passwordController.text.isNotEmpty) {
-        await _databaseService.updatePassword(_passwordController.text);
-        _passwordController.clear();
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Information updated successfully')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating information: $e')),
-      );
-    }
-  }
-
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
@@ -90,6 +35,8 @@ class _PassengerInformationScreenState
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<MyUser?>(context);
+    final dbService = DatabaseService(uid: user!.uid);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -104,9 +51,7 @@ class _PassengerInformationScreenState
         ),
 
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      body: SingleChildScrollView(
 
       child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 20),
@@ -156,7 +101,7 @@ class _PassengerInformationScreenState
                         if (!_isEditable) {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
-                            _saveUserData();
+                            // dbService.;
                           } else {
                             // If validation fails, keep in edit mode
                             _isEditable = true;
