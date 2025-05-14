@@ -14,21 +14,21 @@ class DatabaseService {
       .collection('users');
 
   // Update user data in Firestore
-  Future updateUserData({
-    String? name,
-    String? email,
-    String? phone,
-    String? plateNumber,
-    String? userType,
-    int? cardCount,
-  }) async {
+  Future updateUserData(
+    String name,
+    String email,
+    String phone,
+    String plateNumber,
+    String userType,
+    int cardCount,
+  ) async {
       return await userCollection.doc(uid).set({
-        'name': name ?? '',
-        'email': email ?? '',
-        'phone': phone ?? '',
-        'plateNumber': plateNumber ?? '',
-        'userType': userType ?? '',
-        'cardCount': cardCount ?? 0,
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'plateNumber': plateNumber,
+        'userType': userType,
+        'cardCount': cardCount,
       });
   }
 
@@ -52,12 +52,12 @@ class DatabaseService {
   List<CreditCard> _cardListFromSnapshot(QuerySnapshot snapshot) {
     return snapshot.docs.map((doc) {
       return CreditCard(
-        id: doc['id'] ?? '',
-        name: doc['name'] ?? '',
-        number: doc['number'] ?? '',
-        month: doc['month'] ?? '',
-        year: doc['year'] ?? '',
-        type: doc['type'] ?? true,
+        id: doc['id'],
+        name: doc['name'],
+        number: doc['number'],
+        month: doc['month'],
+        year: doc['year'],
+        type: doc['type'],
       );
     }).toList();
   }
@@ -71,7 +71,7 @@ class DatabaseService {
         .map(_cardListFromSnapshot);
   }
 
-  UserModel _userDataFromSnapshot(DocumentSnapshot snapshot) {
+  UserModel? _userDataFromSnapshot(DocumentSnapshot snapshot) {
     return UserModel(
         uid: uid,
         name: snapshot['name'],
@@ -84,7 +84,7 @@ class DatabaseService {
   }
 
   // get user doc stream
-  Stream<UserModel> get userData {
+  Stream<UserModel?> get userData {
     return userCollection.doc(uid).snapshots().map(_userDataFromSnapshot);
   }
 }

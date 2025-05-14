@@ -22,6 +22,7 @@ import 'preferences/driver_preferences.dart';
 
 void main() {
   runApp(const MyApp());
+
 }
 
 class MyApp extends StatelessWidget {

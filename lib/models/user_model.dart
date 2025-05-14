@@ -11,7 +11,7 @@ class UserModel {
   final String name;
   final String email;
   final String phone;
-  final String? plateNumber;
+  final String plateNumber;
   final String userType; // 'Driver' or 'Passenger'
   final int cardCount;
 
@@ -20,7 +20,7 @@ class UserModel {
     required this.name,
     required this.email,
     required this.phone,
-    this.plateNumber,
+    required this.plateNumber,
     required this.userType,
     required this.cardCount,
   });

@@ -63,6 +63,7 @@ class _AddNewCardState extends State<AddNewCard> {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<MyUser>(context);
+    final UserModel? userdata = Provider.of<UserModel?>(context, listen: false);
     final dbService = DatabaseService(uid: user.uid);
     return Scaffold(
         backgroundColor: Colors.white,
@@ -258,7 +259,6 @@ class _AddNewCardState extends State<AddNewCard> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Processing Data')),
                             );
-                            final UserModel? userdata = Provider.of<UserModel?>(context, listen: false);
                             _formKey.currentState!.save();
                             dbService.addCreditCard(
                                 CreditCard (
@@ -270,7 +270,14 @@ class _AddNewCardState extends State<AddNewCard> {
                                     type: true
                                 )
                             );
-                            dbService.updateUserData(cardCount: userdata.cardCount + 1);
+                            dbService.updateUserData(
+                                userdata.name,
+                                userdata.email,
+                                userdata.phone,
+                                userdata.plateNumber,
+                                userdata.userType,
+                                userdata.cardCount + 1
+                            );
                           }
                           else {
                             String errorMessage = 'Try again with valid card information';
