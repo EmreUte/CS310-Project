@@ -1,11 +1,15 @@
+import 'package:cs310_project/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 
 import 'dart:io' show Platform;
 
+import '../services/database.dart';
 import '../utils/colors.dart';
 import '../utils/dimensions.dart';
 import '../utils/styles.dart';
+import 'components/credit_card.dart';
 
 
 class AddNewCard extends StatefulWidget {
@@ -17,8 +21,8 @@ class AddNewCard extends StatefulWidget {
 
 class _AddNewCardState extends State<AddNewCard> {
   final _formKey = GlobalKey<FormState>();
-  String cardNumber = "";
   String cardName = "";
+  String cardNumber = "";
   String cardMonth = "";
   String cardYear = "";
   bool hasSubmitted = false;
@@ -56,231 +60,254 @@ class _AddNewCardState extends State<AddNewCard> {
         );
   }
 
-
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<MyUser>(context);
+    final UserModel? userdata = Provider.of<UserModel?>(context, listen: false);
+    final dbService = DatabaseService(uid: user.uid);
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.appBarBackground,
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-            'Enter Card Info',
-            style: kAppBarText,
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: AppColors.appBarBackground,
+          leading: IconButton(
+            icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
+            onPressed: () => Navigator.pop(context),
           ),
-        ),
-      body: Padding(
-          padding: Dimen.screenPadding,
-          child:  Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 40),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+          title: Text(
+              'Enter Card Info',
+              style: kAppBarText,
+            ),
+          ),
+        body: Padding(
+            padding: Dimen.screenPadding,
+            child:  Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 40),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                        Text(
+                        "Card Name",
+                        style: kFillerText,
+                      ),
+                      SizedBox(height: 8),
+                      TextFormField(
+                        decoration: InputDecoration(
+                          hintText: "Enter card holder name",
+                          filled: true,
+                          fillColor: AppColors.fillBox,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: Dimen.textboxPadding,
+                        ),
+
+                        validator: (value) {
+                          if (value != null) {
+                            if (value.isEmpty) {
+                              return 'REQUIRED FIELD';
+                            }
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          cardName = value ?? '';
+                        },
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 22),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                      "Card Name",
-                      style: kFillerText,
-                    ),
-                    SizedBox(height: 8),
-                    TextFormField(
-                      decoration: InputDecoration(
-                        hintText: "Enter card holder name",
-                        filled: true,
-                        fillColor: AppColors.fillBox,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: Dimen.textboxPadding,
+                        "Card Number",
+                        style: kFillerText,
                       ),
-
-                      validator: (value) {
-                        if (value != null) {
-                          if (value.isEmpty) {
-                            return 'REQUIRED FIELD';
-                          }
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        cardName = value ?? '';
-                      },
-                    ),
-                  ],
-                ),
-                SizedBox(height: 22),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Card Number",
-                      style: kFillerText,
-                    ),
-                    SizedBox(height: 8),
-                    TextFormField(
-                      decoration: InputDecoration(
-                        hintText: "Enter card number",
-                        filled: true,
-                        fillColor: AppColors.fillBox,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: Dimen.textboxPadding
-                      ),
-
-                      validator: (value) {
-                        if (value != null) {
-                          if (value.isEmpty) {
-                            return 'REQUIRED FIELD';
-                          }
-                          else if (value.length != 16) {
-                            return 'Invalid card number';
-                          }
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        cardNumber = value ?? '';
-                      },
-                    ),
-                  ],
-                ),
-                SizedBox(height: 22),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Month",
-                            style: kFillerText,
+                      SizedBox(height: 8),
+                      TextFormField(
+                        decoration: InputDecoration(
+                          hintText: "Enter card number",
+                          filled: true,
+                          fillColor: AppColors.fillBox,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
                           ),
-                          SizedBox(height: 8),
-                          TextFormField(
-                            decoration: InputDecoration(
-                              hintText: "MM",
-                              filled: true,
-                              fillColor: AppColors.fillBox,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              contentPadding: Dimen.textboxPadding
+                          contentPadding: Dimen.textboxPadding
+                        ),
+
+                        validator: (value) {
+                          if (value != null) {
+                            if (value.isEmpty) {
+                              return 'REQUIRED FIELD';
+                            }
+                            else if (value.length != 16) {
+                              return 'Invalid card number';
+                            }
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          cardNumber = value ?? '';
+                        },
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 22),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Month",
+                              style: kFillerText,
                             ),
-
-                            validator: (value) {
-                              if (value != null) {
-                                if (value.isEmpty) {
-                                  return 'REQUIRED FIELD';
-                                }
-                                else if (value.length > 2) {
-                                  return 'Invalid month';
-                                }
-                              }
-                              return null;
-                            },
-                            onSaved: (value) {
-                              cardMonth = value ?? '';
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 26),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Year",
-                            style: kFillerText,
-                          ),
-                          SizedBox(height: 8),
-                          TextFormField(
-                            decoration: InputDecoration(
-                              hintText: "YY",
-                              filled: true,
-                              fillColor: AppColors.fillBox,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
+                            SizedBox(height: 8),
+                            TextFormField(
+                              decoration: InputDecoration(
+                                hintText: "MM",
+                                filled: true,
+                                fillColor: AppColors.fillBox,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: Dimen.textboxPadding
                               ),
-                              contentPadding: Dimen.textboxPadding
+
+                              validator: (value) {
+                                if (value != null) {
+                                  if (value.isEmpty) {
+                                    return 'REQUIRED FIELD';
+                                  }
+                                  else if (value.length > 2) {
+                                    return 'Invalid month';
+                                  }
+                                }
+                                return null;
+                              },
+                              onSaved: (value) {
+                                cardMonth = value ?? '';
+                              },
                             ),
-
-                            validator: (value) {
-                              if (value != null) {
-                                if (value.isEmpty) {
-                                  return 'REQUIRED FIELD';
-                                }
-                                else if (value.length > 4) {
-                                  return 'Invalid year';
-                                }
-                              }
-                              return null;
-                            },
-                            onSaved: (value) {
-                              cardYear = value ?? '';
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-
-                SizedBox(height: 22),
-                _buildTermsAndConditions(),
-                SizedBox(height: 40),
-                Center(
-                  child: SizedBox(
-                    width: 222,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          hasSubmitted = true; // Set flag when button is clicked
-                        });
-                        if (_formKey.currentState!.validate() && tickVal == true) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Processing Data')),
-                          );
-                          _formKey.currentState!.save();
-                        } else {
-                          String errorMessage = 'Try again with valid card information';
-                          if (tickVal == false) {
-                            errorMessage = 'Try again with valid card information and agree to the Terms & Conditions';
-                          }
-                          _showDialog('Form Error', errorMessage);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.buttonBackground,
-                        padding: Dimen.buttonPadding,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(100),
+                          ],
                         ),
                       ),
-                      child: Text(
-                        'Add Card',
-                        style: kButtonText,
+                      SizedBox(width: 26),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Year",
+                              style: kFillerText,
+                            ),
+                            SizedBox(height: 8),
+                            TextFormField(
+                              decoration: InputDecoration(
+                                hintText: "YY",
+                                filled: true,
+                                fillColor: AppColors.fillBox,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: Dimen.textboxPadding
+                              ),
+
+                              validator: (value) {
+                                if (value != null) {
+                                  if (value.isEmpty) {
+                                    return 'REQUIRED FIELD';
+                                  }
+                                  else if (value.length > 4) {
+                                    return 'Invalid year';
+                                  }
+                                }
+                                return null;
+                              },
+                              onSaved: (value) {
+                                cardYear = value ?? '';
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+
+                  SizedBox(height: 22),
+                  _buildTermsAndConditions(),
+                  SizedBox(height: 40),
+                  Center(
+                    child: SizedBox(
+                      width: 222,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            hasSubmitted = true; // Set flag when button is clicked
+                          });
+                          if (_formKey.currentState!.validate() && tickVal == true) {
+                            _formKey.currentState!.save();
+                            dbService.addCreditCard(
+                                CreditCard (
+                                    id: userdata!.cardID.toString(),
+                                    name: cardName,
+                                    number: cardNumber,
+                                    month: cardMonth,
+                                    year: cardYear,
+                                    type: true
+                                )
+                            );
+                            dbService.updateUserData(
+                                userdata.name,
+                                userdata.email,
+                                userdata.phone,
+                                userdata.plateNumber,
+                                userdata.userType,
+                                userdata.cardCount + 1,
+                                userdata.cardID + 1,
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Card successfuly added')),
+                            );
+                            Navigator.pop(context);
+                          }
+                          else {
+                            String errorMessage = 'Try again with valid card information';
+                            if (tickVal == false) {
+                              errorMessage = 'Try again with valid card information and agree to the Terms & Conditions';
+                            }
+                            _showDialog('Form Error', errorMessage);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.buttonBackground,
+                          padding: Dimen.buttonPadding,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                        ),
+                        child: Text(
+                          'Add Card',
+                          style: kButtonText,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-    );
+      );
   }
 
   bool tickVal = false;

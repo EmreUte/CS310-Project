@@ -1,174 +1,93 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cs310_project/digital_payments/components/credit_card.dart';
+import 'package:cs310_project/models/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class DatabaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Get current user ID
-  String? get currentUserId => _auth.currentUser?.uid;
+  final String uid;
 
-  // Get current user
-  User? get currentUser => _auth.currentUser;
+  DatabaseService({required this.uid});
 
-  // Get user data from Firestore
-  Future<DocumentSnapshot?> getUserData() async {
-    if (currentUserId == null) return null;
-
-    try {
-      return await _firestore.collection('users').doc(currentUserId).get();
-    } catch (e) {
-      print('Error getting user data: $e');
-      return null;
-    }
-  }
+  final CollectionReference userCollection = FirebaseFirestore.instance
+      .collection('users');
 
   // Update user data in Firestore
-  Future<void> updateUserData({
-    String? name,
-    String? email,
-    String? phone,
-    String? plateNumber,
-  }) async {
-    if (currentUserId == null) return;
-
-    Map<String, dynamic> data = {};
-    if (name != null) data['name'] = name;
-    if (email != null) data['email'] = email;
-    if (phone != null) data['phone'] = phone;
-    if (plateNumber != null) data['plateNumber'] = plateNumber;
-
-    try {
-      await _firestore.collection('users').doc(currentUserId).update(data);
-
-      // Update email in Firebase Auth if it changed
-      if (email != null && email != currentUser?.email) {
-        await currentUser?.updateEmail(email);
-      }
-    } catch (e) {
-      print('Error updating user data: $e');
-      throw e;
-    }
-  }
-
-  // Update user password
-  Future<void> updatePassword(String newPassword) async {
-    if (currentUser == null) return;
-
-    try {
-      await currentUser?.updatePassword(newPassword);
-    } catch (e) {
-      print('Error updating password: $e');
-      throw e;
-    }
-  }
-
-  // Check if user is a driver
-  Future<bool> isDriver() async {
-    if (currentUserId == null) return false;
-
-    try {
-      DocumentSnapshot doc = await _firestore.collection('users').doc(currentUserId).get();
-      return doc.exists && doc.get('userType') == 'Driver';
-    } catch (e) {
-      print('Error checking user type: $e');
-      return false;
-    }
-  }
-
-  // Logout method
-  Future<void> logout() async {
-    try {
-      await _auth.signOut();
-      print('Logged out successfully');
-    } catch (e) {
-      print('Error logging out: $e');
-      throw e;
-    }
-  }
-
-  // Methods to add when implementing real authentication:
-
-  // Create a new user in Firestore after signup
-  Future<void> createUserDocument({
-    required String uid,
-    required String name,
-    required String email,
-    required String phone,
-    required String userType,
-    String? plateNumber,
-  }) async {
-    try {
-      await _firestore.collection('users').doc(uid).set({
+  Future updateUserData(
+    String name,
+    String email,
+    String phone,
+    String plateNumber,
+    String userType,
+    int cardCount,
+    int cardID,
+  ) async {
+      return await userCollection.doc(uid).set({
         'name': name,
         'email': email,
         'phone': phone,
-        'userType': userType,
         'plateNumber': plateNumber,
-        'createdAt': FieldValue.serverTimestamp(),
+        'userType': userType,
+        'cardCount': cardCount,
+        'cardID': cardID,
       });
-    } catch (e) {
-      print('Error creating user document: $e');
-      throw e;
-    }
   }
 
-  // Sign up with email and password
-  Future<UserCredential> signUpWithEmailAndPassword({
-    required String email,
-    required String password,
-    required String name,
-    required String phone,
-    required String userType,
-    String? plateNumber,
-  }) async {
-    try {
-      // Create user in Firebase Auth
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      // Create user document in Firestore
-      await createUserDocument(
-        uid: userCredential.user!.uid,
-        name: name,
-        email: email,
-        phone: phone,
-        userType: userType,
-        plateNumber: plateNumber,
-      );
-
-      return userCredential;
-    } catch (e) {
-      print('Error signing up: $e');
-      throw e;
-    }
+  // gift list from snapshot
+  Future addCreditCard(CreditCard card) async {
+    return await userCollection
+        .doc(uid)
+        .collection('payment_methods')
+        .doc(card.id)
+        .set(card.toMap());
   }
 
-  // Sign in with email and password
-  Future<UserCredential> signInWithEmailAndPassword({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      return await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-    } catch (e) {
-      print('Error signing in: $e');
-      throw e;
-    }
+  Future removeCreditCard(String cardID) async {
+      return await userCollection
+          .doc(uid)
+          .collection('payment_methods')
+          .doc(cardID)
+          .delete();
   }
 
-  // Password reset
-  Future<void> sendPasswordResetEmail(String email) async {
-    try {
-      await _auth.sendPasswordResetEmail(email: email);
-    } catch (e) {
-      print('Error sending password reset email: $e');
-      throw e;
-    }
+  List<CreditCard> _cardListFromSnapshot(QuerySnapshot snapshot) {
+    return snapshot.docs.map((doc) {
+      return CreditCard(
+        id: doc['id'],
+        name: doc['name'],
+        number: doc['number'],
+        month: doc['month'],
+        year: doc['year'],
+        type: doc['type'],
+      );
+    }).toList();
+  }
+
+  // get cards stream
+  Stream<List<CreditCard>> get cards {
+    return userCollection
+        .doc(uid)
+        .collection('payment_methods')
+        .snapshots()
+        .map(_cardListFromSnapshot);
+  }
+
+  UserModel? _userDataFromSnapshot(DocumentSnapshot snapshot) {
+    return UserModel(
+        uid: uid,
+        name: snapshot['name'],
+        email: snapshot['email'],
+        phone: snapshot['phone'],
+        plateNumber: snapshot['plateNumber'],
+        userType: snapshot['userType'],
+        cardCount: snapshot['cardCount'],
+        cardID: snapshot['cardID'],
+    );
+  }
+
+  // get user doc stream
+  Stream<UserModel?> get userData {
+    return userCollection.doc(uid).snapshots().map(_userDataFromSnapshot);
   }
 }

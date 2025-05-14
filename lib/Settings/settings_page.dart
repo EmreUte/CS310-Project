@@ -1,8 +1,8 @@
 import 'package:cs310_project/utils/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/auth.dart';
 import '../utils/colors.dart';
-import '../services/navigation_service.dart';
 import '../services/database.dart';
 
 
@@ -18,7 +18,6 @@ class SettingsPageState extends State<SettingsPage> {
   bool _darkTheme = false;
   String _language = 'English';
   String _textSize = 'Medium';
-  final NavigationService _navigationService = NavigationService();
 
 
   @override
@@ -42,7 +41,6 @@ class SettingsPageState extends State<SettingsPage> {
           _settingsTile(
               'Personal information',
               Icon(Icons.play_arrow),
-                  () => _navigationService.navigateToCorrectInformationPage(context)
           ),
           _settingsTile('Request account info', Icon(Icons.play_arrow)),
           _settingsTile('Delete account', Icon(Icons.play_arrow)),
@@ -106,6 +104,7 @@ class SettingsPageState extends State<SettingsPage> {
                   EdgeInsets.symmetric(horizontal: 40.0, vertical: 12.0),
                 ),
                 onPressed: () {
+                  AuthService().signOut();
                   Navigator.popUntil(context, (route) => route.isFirst);
                 },
                 child: Text(
