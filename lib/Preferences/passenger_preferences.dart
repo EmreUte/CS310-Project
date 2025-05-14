@@ -4,6 +4,12 @@ import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/dimensions.dart';
 import '../utils/styles.dart';
+import 'dart:convert';
+// Firebase Imports:
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 
 class PassengerPreferencesScreen extends StatefulWidget
@@ -14,10 +20,19 @@ class PassengerPreferencesScreen extends StatefulWidget
   State<PassengerPreferencesScreen> createState() => _PassengerPreferencesScreenState();
 }
 
+
+
+
+
 class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
 {
   final _formKey = GlobalKey<FormState>();
+  final _locationController = TextEditingController();
   String location = "";
+  double? selectedLat;
+  double? selectedLng;
+  double? finalLat;
+  double? finalLng;
   String luggageAmount = "";
   String tipAmount = "";
   String driverExperience = "";
@@ -32,6 +47,28 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
   bool isExpanded = false;
   String? preferredCarType;
   List<String> carTypes = ["SUV","Sports","Convertible","Mini Van","Electric","Sedan"];
+
+  Future<List<Map<String, dynamic>>> searchAddress(String query) async {
+    final response = await http.get(
+      Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=$query&countrycodes=tr'), // Turkey-only results
+    );
+
+    if (response.statusCode == 200) {
+      return (json.decode(response.body) as List)
+          .map((place) => {
+        'display': place['display_name'],
+        'lat': place['lat'],
+        'lon': place['lon'],
+      })
+          .toList();
+    }
+    return [];
+  }
+
+
+
+
+
 
   Future<void> _showDialog(String title, String message) async {
     bool isAndroid = Platform.isAndroid;
@@ -88,31 +125,75 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
               Column(crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text("Location", style: kFillerText),
-                  SizedBox(height: 5),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: AppColors.fillBox,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: Dimen.textboxPadding,
-                    ),
+                  SizedBox(height: 15),
+                  FormField<String>(
                     validator: (value) {
-                      if (value != null) {
-                        if (value.isEmpty) {
-                          return "Please enter your location";
-                        }
+                      if (_locationController.text.isEmpty) {
+                        return 'Please enter your location';
                       }
                       return null;
                     },
+                    builder: (FormFieldState<String> state) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TypeAheadField<Map<String, dynamic>>(
+                            suggestionsCallback: (pattern) async {
+                              return await searchAddress(pattern);
+                            },
+                            itemBuilder: (context, suggestion) {
+                              return ListTile(
+                                title: Text(suggestion['display']),
+                              );
+                            },
+                            onSelected: (suggestion) {
+                              _locationController.text = suggestion['display'];
+                              _formKey.currentState?.save();
+                              state.didChange(_locationController.text); // Inform the form field
+                              setState(() {
+                                selectedLat = double.parse(suggestion['lat']);
+                                selectedLng = double.parse(suggestion['lon']);
+                              });
+                            },
+                            builder: (context, controller, focusNode) {
+                              // Sync internal TypeAhead controller with your external controller
+                              controller.text = _locationController.text;
+                              controller.selection = TextSelection.fromPosition(
+                                TextPosition(offset: controller.text.length),
+                              );
+                              return TextField(
+                                controller: controller,
+                                focusNode: focusNode,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: AppColors.fillBox,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  contentPadding: Dimen.textboxPadding,
+                                  labelText: 'Enter your current location',
+                                  hintText: 'Ex: Orta Mahallesi, Üniversite Cd...',
+                                  suffixIcon: Icon(Icons.search),
+                                  errorText: state.errorText,
+                                ),
+                                onChanged: (value) {
+                                  _locationController.text = value;
+                                  state.didChange(value); // Trigger validation updates
+                                },
+                              );
+                            },
+                          ),
+                        ],
+                      );
+                    },
                     onSaved: (value) {
-                      location = value ?? '';
+                      finalLat = selectedLat;
+                      finalLng = selectedLng;
                     },
                   ),
                   SizedBox(height: 25,),
-                  Text("Luggage", style: kFillerText),
+                  Text("Lüggage", style: kFillerText),
                   SizedBox(height: 5),
                   TextFormField(
                     decoration: InputDecoration(
@@ -397,7 +478,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                             child: SizedBox(
                               width: 222,
                               child: ElevatedButton(
-                                onPressed: () {
+                                onPressed: () async {
                                   setState(() {
                                     hasSubmitted =
                                     true; // Set flag when button is clicked
@@ -407,6 +488,33 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                                       const SnackBar(content: Text('Processing Data')),
                                     );
                                     _formKey.currentState!.save();
+
+                                    try {
+                                      final user = FirebaseAuth.instance.currentUser;
+                                      if (user == null) throw Exception('User not authenticated');
+                                      await FirebaseFirestore.instance
+                                          .collection('Passenger_Preferences')
+                                          .doc(user.uid)
+                                          .set({
+                                        'latitude': finalLat,
+                                        'longitude': finalLng,
+                                        'luggage': luggageAmount,
+                                        'gender_preference': selectedGender,
+                                        'rating': selectedRating,
+                                        'tip': tipAmount,
+                                        'requested_driver_exp': driverExperience,
+                                        'smoking_preference': selectedSmoking,
+                                        'car_type': preferredCarType});
+
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Preferences saved successfully!')),);
+
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Failed to save: ${e.toString()}')),
+                                      );
+                                    }
+
                                   } else {
                                     String errorMessage = 'Try again with valid entries';
                                     _showDialog('Form Error', errorMessage);

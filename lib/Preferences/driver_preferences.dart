@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/dimensions.dart';
 import '../utils/styles.dart';
-
+// Firebase Imports:
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class DriverPreferencesScreen extends StatefulWidget 
 {
@@ -20,6 +22,7 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
   String luggageCapacity = "";
   String reqTipAmount = "";
   String passengerCapacity = "";
+  String drivingExperience = "";
   bool hasSubmitted = false;
   final List<String> genderPreference = ["Male","Female","None"];
   final List<String> smokingPreference = ["Non-Smoking","Smoking Allowed"];
@@ -276,6 +279,39 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
                   ),
                   SizedBox(height: 15),
                   Center(
+                      child: Text("Driving Experience", style: kFillerText)),
+                  SizedBox(height: 5),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: AppColors.fillBox,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: Dimen.textboxPadding,
+                    ),
+                    validator: (value) {
+                      if (value != null) {
+                        if (value.isEmpty) {
+                          return "Please enter a number";
+                        }
+                        else if (int.tryParse(value) == null) {
+                          return "Please enter a valid integer as driving experience";
+                        }
+                        else if (int.tryParse(value) ! < 0 &&
+                            int.tryParse(value) ! > 70) {
+                          return "Please enter a plausible driving experience";
+                        }
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      drivingExperience = value ?? '';
+                    },
+                  ),
+                  SizedBox(height: 15),
+                  Center(
                       child: Text("Smoking Preference", style: kFillerText)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -376,7 +412,7 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
                     child: SizedBox(
                       width: 222,
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           setState(() {
                             hasSubmitted =
                             true; // Set flag when button is clicked
@@ -386,6 +422,32 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
                               const SnackBar(content: Text('Processing Data')),
                             );
                             _formKey.currentState!.save();
+
+                            try {
+                              final user = FirebaseAuth.instance.currentUser;
+                              if (user == null) throw Exception('User not authenticated');
+                              await FirebaseFirestore.instance
+                                  .collection('Driver_Preferences')
+                                  .doc(user.uid)
+                                  .set({
+                                'luggage': luggageCapacity,
+                                'gender_preference': selectedGender,
+                                'rating': selectedRating,
+                                'required_tip': reqTipAmount,
+                                'driver_exp': drivingExperience,
+                                'smoking_preference': selectedSmoking,
+                                'car_type': selectedCarType});
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Preferences saved successfully!')),);
+
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Failed to save: ${e.toString()}')),
+                              );
+                            }
+
+
                           } else {
                             String errorMessage = 'Try again with valid entries';
                             _showDialog('Form Error', errorMessage);
