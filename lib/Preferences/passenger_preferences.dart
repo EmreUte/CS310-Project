@@ -139,6 +139,8 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                         children: [
                           TypeAheadField<Map<String, dynamic>>(
                             suggestionsCallback: (pattern) async {
+                              // Due to limitations.
+                              await Future.delayed(Duration(seconds: 1));
                               return await searchAddress(pattern);
                             },
                             itemBuilder: (context, suggestion) {
@@ -534,6 +536,8 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                               ),
                             ),
                           ),
+                          SizedBox(height: 20),
+                          SizedBox(child: Text('© OpenStreetMap contributors', style: TextStyle(fontSize: 10))),
                         ],
                       );
                     }),
