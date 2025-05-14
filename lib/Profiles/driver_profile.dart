@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../Settings/settings_page.dart';
+import '../models/user_model.dart';
 import '../utils/colors.dart';
 import '../utils/dimensions.dart';
 import '../utils/styles.dart';
-import '../Settings/settings_page.dart';
 import '../RideHistory/ride_history.dart';
 import '../RideMonitoring/finding_your_ride.dart';
 import '../preferences/driver_preferences.dart';
@@ -11,6 +13,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class DriverProfile extends StatefulWidget {
+
   const DriverProfile({super.key});
 
   @override
@@ -18,45 +21,17 @@ class DriverProfile extends StatefulWidget {
 }
 
 class _DriverProfileState extends State<DriverProfile> {
-  final DatabaseService _databaseService = DatabaseService();
   String userName = "Driver";
-  bool isLoading = true;
 
   @override
-  void initState() {
-    super.initState();
-    _loadUserData();
-  }
-
-  Future<void> _loadUserData() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      DocumentSnapshot? userData = await _databaseService.getUserData();
-      if (userData != null && userData.exists) {
-        setState(() {
-          userName = userData.get('name') ?? "Driver";
-        });
-      }
-    } catch (e) {
-      print('Error loading user data: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
   Widget build(BuildContext context) {
+    final user = Provider.of<MyUser?>(context);
+    final dbService = DatabaseService(uid: user!.uid);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: isLoading
-            ? const CircularProgressIndicator()
-            : Text(
+        title: Text(
           userName,
           style: kHeadingText.copyWith(color: AppColors.primaryText),
         ),
@@ -74,9 +49,7 @@ class _DriverProfileState extends State<DriverProfile> {
           ),
         ],
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      body: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 90),
 
