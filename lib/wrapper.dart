@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'error_page.dart';
+import 'loading_page.dart';
 import 'models/user_model.dart';
-
 
 class Wrapper extends StatelessWidget {
   const Wrapper({super.key});
@@ -22,7 +22,23 @@ class Wrapper extends StatelessWidget {
       return WelcomePage();
     }
     else {
-      return PassengerProfile();
+      final dbService = DatabaseService(uid: user.uid);
+      return StreamProvider<UserModel?>.value(
+        value: dbService.userData,
+        initialData: null,
+        child: Consumer<UserModel?>(
+          builder: (context, userData, child) {
+            if (userData == null) {
+              // Handle loading or no data
+              return LoadingPage();
+            }
+            // Check userType and return appropriate profile
+            return userData.userType == 'Driver'
+                ? DriverProfile()
+                : PassengerProfile();
+          },
+        ),
+      );
     }
   }
 }
