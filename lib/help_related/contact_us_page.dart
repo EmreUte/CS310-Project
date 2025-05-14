@@ -1,7 +1,10 @@
 import 'dart:io';
 
+import 'package:cs310_project/models/user_model.dart';
+import 'package:cs310_project/services/database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../utils/colors.dart';
 import '../utils/dimensions.dart';
@@ -53,6 +56,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<MyUser>(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -119,6 +123,8 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                                 if (_formKey.currentState!.validate()) {
 
                                   _formKey.currentState!.save();
+
+                                  DatabaseService(uid: user.uid).sendMessage(msg);
 
                                   Navigator.pop(context);
 

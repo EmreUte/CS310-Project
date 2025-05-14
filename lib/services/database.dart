@@ -16,13 +16,20 @@ class DatabaseService {
   final CollectionReference msgCollection = FirebaseFirestore.instance
       .collection('emails');
 
-  Future sendMessage(
-      String msg
-      ) async {
-    return await msgCollection.doc(uid).set({
-      'msg' : msg,
-    });
+  Future sendMessage(String msg) async {
+    try {
+      // Create a new document in the 'emails' collection with a unique ID
+      return await msgCollection.add({
+        'uid': uid, // Store the user's UID
+        'msg': msg, // Store the message
+        'timestamp': FieldValue.serverTimestamp(), // Add a server-side timestamp
+      });
+    } catch (e) {
+      print('Error logging message: $e');
+      rethrow; // Rethrow to handle errors in the UI
+    }
   }
+
   // Update user data in Firestore
   Future updateUserData(
     String name,
