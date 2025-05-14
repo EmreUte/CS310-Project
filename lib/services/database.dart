@@ -13,6 +13,16 @@ class DatabaseService {
   final CollectionReference userCollection = FirebaseFirestore.instance
       .collection('users');
 
+  final CollectionReference msgCollection = FirebaseFirestore.instance
+      .collection('emails');
+
+  Future sendMessage(
+      String msg
+      ) async {
+    return await msgCollection.doc(uid).set({
+      'msg' : msg,
+    });
+  }
   // Update user data in Firestore
   Future updateUserData(
     String name,
@@ -42,7 +52,6 @@ class DatabaseService {
         .doc(card.id)
         .set(card.toMap());
   }
-
   Future removeCreditCard(String cardID) async {
       return await userCollection
           .doc(uid)
@@ -50,7 +59,6 @@ class DatabaseService {
           .doc(cardID)
           .delete();
   }
-
   List<CreditCard> _cardListFromSnapshot(QuerySnapshot snapshot) {
     return snapshot.docs.map((doc) {
       return CreditCard(
@@ -63,7 +71,6 @@ class DatabaseService {
       );
     }).toList();
   }
-
   // get cards stream
   Stream<List<CreditCard>> get cards {
     return userCollection
