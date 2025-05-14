@@ -25,7 +25,6 @@ class AuthService {
       print(e.toString());
       return null;
     }
-
   }
 
   // Register with email pass

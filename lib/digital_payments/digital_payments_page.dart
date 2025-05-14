@@ -17,8 +17,9 @@ class CreditCardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<MyUser>(context);
+    final dbService = DatabaseService(uid: user.uid);
     return StreamProvider<List<CreditCard>?>.value(
-        value: DatabaseService(uid: user.uid).cards,
+        value: dbService.cards,
         initialData: null,
         child: Scaffold(
           backgroundColor: Colors.white,
@@ -34,7 +35,11 @@ class CreditCardScreen extends StatelessWidget {
             ),
             automaticallyImplyLeading: false,
           ),
-          body: CardList()
+          body: StreamProvider<UserModel?>.value(
+              value: dbService.userData,
+              initialData: null,
+              child: CardList(),
+          ),
         )
     );
   }

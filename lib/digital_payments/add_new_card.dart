@@ -256,9 +256,6 @@ class _AddNewCardState extends State<AddNewCard> {
                             hasSubmitted = true; // Set flag when button is clicked
                           });
                           if (_formKey.currentState!.validate() && tickVal == true) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Processing Data')),
-                            );
                             _formKey.currentState!.save();
                             dbService.addCreditCard(
                                 CreditCard (
@@ -278,6 +275,10 @@ class _AddNewCardState extends State<AddNewCard> {
                                 userdata.userType,
                                 userdata.cardCount + 1
                             );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Card successfuly added')),
+                            );
+                            Navigator.pop(context);
                           }
                           else {
                             String errorMessage = 'Try again with valid card information';

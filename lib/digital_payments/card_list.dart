@@ -29,6 +29,7 @@ class _CardListState extends State<CardList> {
   Widget build(BuildContext context) {
     final List<CreditCard>? cards = Provider.of<List<CreditCard>?>(context);
     final user = Provider.of<MyUser>(context);
+    final userdata = Provider.of<UserModel?>(context);
     final dbService = DatabaseService(uid: user.uid);
     return Padding(
       padding: Dimen.screenPadding,
@@ -60,38 +61,39 @@ class _CardListState extends State<CardList> {
                 mode: inEdit,
                 delete: () {
                   dbService.removeCreditCard(card.id);
-                },
+                }
               )
               ).toList(),
             ),
           SizedBox(height: 20),
-          Row(
-            children: [
-              TextButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => StreamProvider<UserModel?>.value(
-                      value: dbService.userData,
-                      initialData: null,
-                      child: AddNewCard(),
-                      ),
-                    )
-                  );
-                },
-                icon: Icon(
-                  Icons.add,
-                  color: Colors.black,
-                  size: 28,
+          if (userdata != null && userdata.cardCount < 5)
+            Row(
+              children: [
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => StreamProvider<UserModel?>.value(
+                        value: dbService.userData,
+                        initialData: null,
+                        child: AddNewCard(),
+                        ),
+                      )
+                    );
+                  },
+                  icon: Icon(
+                    Icons.add,
+                    color: Colors.black,
+                    size: 28,
+                  ),
+                  label: Text(
+                    "Add a new card",
+                    style: kHeadingText,
+                  ),
                 ),
-                label: Text(
-                  "Add a new card",
-                  style: kHeadingText,
-                ),
-              ),
-            ],
-          ),
+              ],
+            ),
           Spacer(),
           Row(
             children: [
