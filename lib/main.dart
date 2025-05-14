@@ -22,7 +22,6 @@ import 'preferences/driver_preferences.dart';
 
 void main() {
   runApp(const MyApp());
-
 }
 
 class MyApp extends StatelessWidget {
@@ -79,34 +78,5 @@ class MyApp extends StatelessWidget {
             home: LoadingPage());
       },
     );
-    /*
-    return MaterialApp(
-      title: 'MyRide',
-      debugShowCheckedModeBanner: false,
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const WelcomePage(),
-        '/digital_payments_page': (context) => CreditCardScreen(),
-        '/add_new_payment': (context) => AddNewCard(),
-        '/driver_information': (context) => DriverInformationScreen(),
-        '/passenger_information': (context) => PassengerInformationScreen(),
-        '/driver_profile': (context) => DriverProfile(),
-        '/passenger_profile': (context) => PassengerProfile(),
-        '/driver_preferences': (context) => DriverPreferencesScreen(),
-        '/passenger_preferences': (context) => PassengerPreferencesScreen(),
-        '/finding_your_ride': (context) => FindingRideScreen(),
-        '/settings_page': (context) => SettingsPage(),
-        '/help_page': (context) => HelpScreen(),
-        '/faq_page': (context) => FaqScreen(),
-      },
-      theme: ThemeData.light().copyWith(
-        appBarTheme: AppBarTheme(
-          backgroundColor: AppColors.appBarBackground,
-          elevation: 0.0,
-          centerTitle: true,
-        ),
-      ),
-    );
-    */
   }
 }

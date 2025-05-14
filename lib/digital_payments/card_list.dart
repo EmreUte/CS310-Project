@@ -54,19 +54,28 @@ class _CardListState extends State<CardList> {
             ],
           ),
           SizedBox(height: 10),
-          if (cards != null)
+          if (cards != null && userdata != null)
             Column(
               children: cards.map((card) => CreditCardBlock(
                 card: card,
                 mode: inEdit,
                 delete: () {
                   dbService.removeCreditCard(card.id);
+                  dbService.updateUserData(
+                      userdata.name,
+                      userdata.email,
+                      userdata.phone,
+                      userdata.plateNumber,
+                      userdata.userType,
+                      userdata.cardCount - 1,
+                      userdata.cardID
+                  );
                 }
               )
               ).toList(),
             ),
           SizedBox(height: 20),
-          if (userdata != null && userdata.cardCount < 5)
+          if (userdata != null && userdata.cardCount < 1)
             Row(
               children: [
                 TextButton.icon(

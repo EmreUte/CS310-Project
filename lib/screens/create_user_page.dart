@@ -52,14 +52,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
           .collection('users')
           .doc(cred.user!.uid)
           .set({
-        'name': _nameController.text.trim(),
-        'email': _emailController.text.trim(),
-        'phone': _phoneController.text.trim(),
-        'userType': selectedUserType,
-        'plateNumber': "AB 280 FF",
-        'cardCount': 0,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+            'name': _nameController.text.trim(),
+            'email': _emailController.text.trim(),
+            'phone': _phoneController.text.trim(),
+            'userType': selectedUserType,
+            'plateNumber': "",
+            'cardCount': 0,
+            'cardID': 0,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
 
       // Navigate to Login
       Navigator.pushReplacement(

@@ -1,6 +1,7 @@
 import 'package:cs310_project/utils/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/auth.dart';
 import '../utils/colors.dart';
 import '../services/database.dart';
 
@@ -103,6 +104,7 @@ class SettingsPageState extends State<SettingsPage> {
                   EdgeInsets.symmetric(horizontal: 40.0, vertical: 12.0),
                 ),
                 onPressed: () {
+                  AuthService().signOut();
                   Navigator.popUntil(context, (route) => route.isFirst);
                 },
                 child: Text(

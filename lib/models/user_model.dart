@@ -1,5 +1,3 @@
-import '../digital_payments/components/credit_card.dart';
-
 class MyUser {
   final String uid;
 
@@ -8,12 +6,16 @@ class MyUser {
 
 class UserModel {
   final String uid;
+  final String userType; // 'Driver' or 'Passenger'
+
   final String name;
   final String email;
   final String phone;
+
   final String plateNumber;
-  final String userType; // 'Driver' or 'Passenger'
+
   final int cardCount;
+  final int cardID;
 
   UserModel({
     required this.uid,
@@ -23,5 +25,6 @@ class UserModel {
     required this.plateNumber,
     required this.userType,
     required this.cardCount,
+    required this.cardID,
   });
 }

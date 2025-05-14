@@ -35,27 +35,11 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       // Sign in with Firebase Auth
-      UserCredential cred = await FirebaseAuth.instance
+      await FirebaseAuth.instance
           .signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-
-      // Fetch user type from Firestore
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(cred.user!.uid)
-          .get();
-
-      final data = userDoc.data() as Map<String, dynamic>?;
-      final userType = data?['userType'] as String?;
-
-      // Navigate based on userType
-      if (userType == 'Driver') {
-        Navigator.pushReplacementNamed(context, '/driver_profile');
-      } else {
-        Navigator.pushReplacementNamed(context, '/passenger_profile');
-      }
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? 'Login failed')),
@@ -63,6 +47,7 @@ class _LoginPageState extends State<LoginPage> {
     } finally {
       setState(() => _isLoading = false);
     }
+    Navigator.pushReplacementNamed(context, '/');
   }
 
   @override
