@@ -53,9 +53,9 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
   Future<List<Map<String, dynamic>>> searchAddress(String query) async {
     final response = await http.get(
       //OpenStreetMap
-      Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=$query&countrycodes=tr'), // Turkey-only results
+      //Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=$query&countrycodes=tr'), // Turkey-only results
       //Stadia Maps
-      //Uri.parse("https://api.stadiamaps.com/geocoding/v1/search?text=$query&api_key=ca885b1b-d8dd-44b4-9036-d78e3405996c&countrycodes=tr"),
+      Uri.parse("https://api.stadiamaps.com/geocoding/v1/search?text=$query&api_key=ca885b1b-d8dd-44b4-9036-d78e3405996c&countrycodes=tr"),
 
     );
 
@@ -590,16 +590,16 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
                                 if(info.exists) {
                                 final passengerInfo = info.data()!;
                                 debugPrint("Entry 1");
-                                if(passengerInfo.containsKey("driver_information") && passengerInfo["passenger_information"] is Map) {
+                                if(passengerInfo.containsKey("driver_information")) {
                                 debugPrint("Element");
                                 await pass_info.update({
                                 'latitude': finalLat,
                                 'longitude': finalLng,
                                 'luggage_capacity': luggageCapacity,
                                 'gender_preference': selectedGender,
-                                'passenger_gender': yourGender,
+                                'driver_gender': yourGender,
                                 'preferred_rating': selectedRating,
-                                'passenger_rating': Random().nextInt(5) + 1,
+                                'driver_rating': Random().nextInt(5) + 1,
                                 'tip': reqTipAmount,
                                 'requested_driver_exp': driverExperience,
                                 'smoking_preference': selectedSmoking,
@@ -615,9 +615,9 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
                                       'longitude': finalLng,
                                       'luggage_capacity': luggageCapacity,
                                       'gender_preference': selectedGender,
-                                      'passenger_gender': yourGender,
+                                      'driver_gender': yourGender,
                                       'preferred_rating': selectedRating,
-                                      'passenger_rating': Random().nextInt(5) + 1,
+                                      'driver_rating': Random().nextInt(5) + 1,
                                       'tip': reqTipAmount,
                                       'requested_driver_exp': driverExperience,
                                       'smoking_preference': selectedSmoking,

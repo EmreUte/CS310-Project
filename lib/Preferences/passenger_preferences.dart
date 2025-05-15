@@ -554,23 +554,23 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                                       if(info.exists) {
                                         final passengerInfo = info.data()!;
                                         debugPrint("Entry 1");
-                                        if(passengerInfo.containsKey("passenger_information") && passengerInfo["passenger_information"] is Map) {
+                                        if(passengerInfo.containsKey("passenger_information")) {
                                           debugPrint("Element");
                                           await pass_info.update({
-                                            'latitude': finalLat,
+                                            'passenger_information': {'latitude': finalLat,
                                             'longitude': finalLng,
                                             'luggage': luggageAmount,
                                             'gender_preference': selectedGender,
                                             'passenger_gender': yourGender,
-                                            'preferred_rating': selectedRating,
+                                            'rating': selectedRating,
                                             'passenger_rating': Random().nextInt(5) + 1,
                                             'tip': tipAmount,
                                             'requested_driver_exp': driverExperience,
                                             'smoking_preference': selectedSmoking,
                                             'smoking_situation': yourSmoking,
-                                            'car_type_preference': preferredCarType
+                                             'car_type_preference': preferredCarType}
 
-                                          });
+                                          },);
                                         }
                                         else {
                                           debugPrint("Entry 2");
@@ -587,7 +587,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                                               'requested_driver_exp': driverExperience,
                                               'smoking_preference': selectedSmoking,
                                               'smoking_situation': yourSmoking,
-                                              'car_type': preferredCarType
+                                              'car_type_preference': preferredCarType,
                                             }
                                           }, SetOptions(merge: true));
                                         }
