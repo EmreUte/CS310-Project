@@ -19,6 +19,9 @@ import 'package:cs310_project/utils/colors.dart';
 import 'RideMonitoring/finding_your_ride.dart';
 import 'preferences/passenger_preferences.dart';
 import 'preferences/driver_preferences.dart';
+import 'RideMonitoring/ride_progress_passenger.dart';
+import 'RideMonitoring/ride_progress_driver.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -60,6 +63,9 @@ class MyApp extends StatelessWidget {
                     '/finding_your_ride': (context) => FindingRideScreen(),
                     '/help_page': (context) => HelpScreen(),
                     '/faq_page': (context) => FaqScreen(),
+                    '/ride_progress_passenger':(context)=> RideProgressPassenger(),
+                    '/ride_progress_driver':(context)=> RideProgressDriver(),
+
                   },
                   theme: ThemeData.light().copyWith(
                     appBarTheme: AppBarTheme(

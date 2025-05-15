@@ -108,21 +108,6 @@ class DatabaseService {
     );
   }
 
-  Future<Map<String, dynamic>?> getDriverInformation() async {
-    try {
-      DocumentSnapshot doc = await userCollection.doc(uid).get();
-      if (doc.exists) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        if (data.containsKey('driver_information')) {
-          return data['driver_information'] as Map<String, dynamic>;
-        }
-      }
-      return null;
-    } catch (e) {
-      print('Error getting driver information: $e');
-      return null;
-    }
-  }
 
   // get user doc stream
   Stream<UserModel?> get userData {
