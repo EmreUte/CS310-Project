@@ -39,6 +39,7 @@ class DatabaseService {
     String userType,
     int cardCount,
     int cardID,
+    int historyId,
   ) async {
       return await userCollection.doc(uid).set({
         'name': name,
@@ -48,6 +49,7 @@ class DatabaseService {
         'userType': userType,
         'cardCount': cardCount,
         'cardID': cardID,
+        'historyId': historyId,
       });
   }
 
@@ -87,6 +89,24 @@ class DatabaseService {
         .map(_cardListFromSnapshot);
   }
 
+  Future addRideRecord(RideRecord record) async {
+    return await userCollection.doc(uid).collection('ride_history').add(record.toMap());
+  }
+
+  Future removeRideRecord(String rideId) async {
+    return await userCollection.doc(uid).collection('ride_history').doc(rideId).delete();
+  }
+
+  List<RideRecord> _rideListFromSnapshot(QuerySnapshot snapshot) {
+    return snapshot.docs.map((doc) {
+      return RideRecord.fromDocument(doc);
+    }).toList();
+  }
+
+  Stream<List<RideRecord>> get rideHistory {
+    return userCollection.doc(uid).collection('ride_history').snapshots().map(_rideListFromSnapshot);
+  }
+
   UserModel? _userDataFromSnapshot(DocumentSnapshot snapshot) {
     return UserModel(
         uid: uid,
@@ -97,6 +117,7 @@ class DatabaseService {
         userType: snapshot['userType'],
         cardCount: snapshot['cardCount'],
         cardID: snapshot['cardID'],
+        historyId: snapshot['historyId'],
     );
   }
 

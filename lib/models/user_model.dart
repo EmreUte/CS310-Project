@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class MyUser {
   final String uid;
 
@@ -17,6 +19,8 @@ class UserModel {
   final int cardCount;
   final int cardID;
 
+  final int historyId;
+
   UserModel({
     required this.uid,
     required this.name,
@@ -26,5 +30,45 @@ class UserModel {
     required this.userType,
     required this.cardCount,
     required this.cardID,
+    required this.historyId,
   });
+}
+
+class RideRecord {
+  final String id;
+  final String date;
+  final String time;
+  final String pickup;
+  final String dropoff;
+  final String amount;
+
+  RideRecord({
+    required this.id,
+    required this.date,
+    required this.time,
+    required this.pickup,
+    required this.dropoff,
+    required this.amount,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'date': date,
+      'time': time,
+      'pickup': pickup,
+      'dropoff': dropoff,
+      'amount': amount,
+    };
+  }
+
+  factory RideRecord.fromDocument(DocumentSnapshot doc) {
+    return RideRecord(
+      id: doc.id,
+      date: doc['date'],
+      time: doc['time'],
+      pickup: doc['pickup'],
+      dropoff: doc['dropoff'],
+      amount: doc['amount'],
+    );
+  }
 }
