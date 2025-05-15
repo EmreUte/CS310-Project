@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
@@ -20,10 +21,6 @@ class PassengerPreferencesScreen extends StatefulWidget
   State<PassengerPreferencesScreen> createState() => _PassengerPreferencesScreenState();
 }
 
-
-
-
-
 class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
 {
   final _formKey = GlobalKey<FormState>();
@@ -39,8 +36,11 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
   bool hasSubmitted = false;
   final List<String> genderPreference = ["Male","Female","None"];
   final List<String> smokingPreference = ["Non-Smoking","Smoking Allowed"];
+  final List<String> smokingSituation = ["Non-Smoker","Smoker"];
   String selectedGender = "None";
   String selectedSmoking = "Non-Smoking";
+  String yourGender = "None";
+  String yourSmoking = "Non-Smoker";
   int? selectedRating; //null at first.
   bool isExpandedRating = false;
   bool isExpandedCarType = false;
@@ -48,9 +48,15 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
   String? preferredCarType;
   List<String> carTypes = ["SUV","Sports","Convertible","Mini Van","Electric","Sedan"];
 
+
+
   Future<List<Map<String, dynamic>>> searchAddress(String query) async {
     final response = await http.get(
+      //OpenStreetMap
       Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=$query&countrycodes=tr'), // Turkey-only results
+      //Stadia Maps
+      //Uri.parse("https://api.stadiamaps.com/geocoding/v1/search?text=$query&api_key=ca885b1b-d8dd-44b4-9036-d78e3405996c&countrycodes=tr"),
+
     );
 
     if (response.statusCode == 200) {
@@ -59,14 +65,12 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
         'display': place['display_name'],
         'lat': place['lat'],
         'lon': place['lon'],
-      })
-          .toList();
+      }).toList();
     }
+    debugPrint("Bad requests all around");
+    debugPrint(response.statusCode.toString());
     return [];
   }
-
-
-
 
 
 
@@ -125,7 +129,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
               Column(crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text("Location", style: kFillerText),
-                  SizedBox(height: 15),
+                  SizedBox(height: 5),
                   FormField<String>(
                     validator: (value) {
                       if (_locationController.text.isEmpty) {
@@ -142,7 +146,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                               // Due to limitations.
                               await Future.delayed(Duration(seconds: 1));
                               return await searchAddress(pattern);
-                            },
+                              },
                             itemBuilder: (context, suggestion) {
                               return ListTile(
                                 title: Text(suggestion['display']),
@@ -195,7 +199,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                     },
                   ),
                   SizedBox(height: 25,),
-                  Text("Lüggage", style: kFillerText),
+                  Text("Luggage", style: kFillerText),
                   SizedBox(height: 5),
                   TextFormField(
                     decoration: InputDecoration(
@@ -236,6 +240,30 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                           onChanged: (value) {
                             setState(() {
                               selectedGender = value!;
+                            });
+                          }
+                      ),
+                        Text(option),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+              SizedBox(height: 20),
+              Center(
+                  child: Text("Your Gender Information",style: kFillerText)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: genderPreference.map<Widget>((option) {
+                  return Padding(padding: const EdgeInsets.symmetric(horizontal: 17.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [Radio<String>(
+                          value: option,
+                          groupValue: yourGender,
+                          onChanged: (value) {
+                            setState(() {
+                              yourGender = value!;
                             });
                           }
                       ),
@@ -406,6 +434,31 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                           ),
                           SizedBox(height: 15),
                           Center(
+                              child: Text("Your Smoking Information", style: kFillerText)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: smokingSituation.map<Widget>((option) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 17.0),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [Radio<String>(
+                                      value: option,
+                                      groupValue: yourSmoking,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          yourSmoking = value!;
+                                        });
+                                      }
+                                  ),
+                                    Text(option),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          SizedBox(height: 15),
+                          Center(
                               child: Text("Car Type Preference", style: kFillerText)),
                           Padding(
                             padding: Dimen.textboxPadding,
@@ -482,8 +535,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                               child: ElevatedButton(
                                 onPressed: () async {
                                   setState(() {
-                                    hasSubmitted =
-                                    true; // Set flag when button is clicked
+                                    hasSubmitted = true; // Set flag when button is clicked
                                   });
                                   if (_formKey.currentState!.validate()) {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -494,30 +546,67 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                                     try {
                                       final user = FirebaseAuth.instance.currentUser;
                                       if (user == null) throw Exception('User not authenticated');
-                                      await FirebaseFirestore.instance
-                                          .collection('Passenger_Preferences')
-                                          .doc(user.uid)
-                                          .set({
-                                        'latitude': finalLat,
-                                        'longitude': finalLng,
-                                        'luggage': luggageAmount,
-                                        'gender_preference': selectedGender,
-                                        'rating': selectedRating,
-                                        'tip': tipAmount,
-                                        'requested_driver_exp': driverExperience,
-                                        'smoking_preference': selectedSmoking,
-                                        'car_type': preferredCarType});
+
+                                      final pass_info = await FirebaseFirestore.instance
+                                      .collection('users').doc(user.uid);
+
+                                      final info = await pass_info.get();
+                                      if(info.exists) {
+                                        final passengerInfo = info.data()!;
+                                        debugPrint("Entry 1");
+                                        if(passengerInfo.containsKey("passenger_information") && passengerInfo["passenger_information"] is Map) {
+                                          debugPrint("Element");
+                                          await pass_info.update({
+                                            'latitude': finalLat,
+                                            'longitude': finalLng,
+                                            'luggage': luggageAmount,
+                                            'gender_preference': selectedGender,
+                                            'passenger_gender': yourGender,
+                                            'preferred_rating': selectedRating,
+                                            'passenger_rating': Random().nextInt(5) + 1,
+                                            'tip': tipAmount,
+                                            'requested_driver_exp': driverExperience,
+                                            'smoking_preference': selectedSmoking,
+                                            'smoking_situation': yourSmoking,
+                                            'car_type_preference': preferredCarType
+
+                                          });
+                                        }
+                                        else {
+                                          debugPrint("Entry 2");
+                                          await pass_info.set({
+                                            'passenger_information': {
+                                              'latitude': finalLat,
+                                              'longitude': finalLng,
+                                              'luggage': luggageAmount,
+                                              'gender_preference': selectedGender,
+                                              'passenger_gender': yourGender,
+                                              'rating': selectedRating,
+                                              'passenger_rating': Random().nextInt(5) + 1,
+                                              'tip': tipAmount,
+                                              'requested_driver_exp': driverExperience,
+                                              'smoking_preference': selectedSmoking,
+                                              'smoking_situation': yourSmoking,
+                                              'car_type': preferredCarType
+                                            }
+                                          }, SetOptions(merge: true));
+                                        }
+                                      }
 
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Preferences saved successfully!')),);
+                                        const SnackBar(content: Text('Preferences saved successfully!')),);
+
 
                                     } catch (e) {
+                                      debugPrint('Failed to save: ${e.toString()}');
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Failed to save: ${e.toString()}')),
-                                      );
+                                        SnackBar(content: Text('Failed to save: ${e.toString()}')),);
                                     }
 
-                                  } else {
+
+                                  }
+                                  
+                                  else {
                                     String errorMessage = 'Try again with valid entries';
                                     _showDialog('Form Error', errorMessage);
                                   }
@@ -536,8 +625,6 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                               ),
                             ),
                           ),
-                          SizedBox(height: 20),
-                          SizedBox(child: Text('© OpenStreetMap contributors', style: TextStyle(fontSize: 10))),
                         ],
                       );
                     }),
