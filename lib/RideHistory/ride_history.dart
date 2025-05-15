@@ -3,23 +3,9 @@ import 'package:cs310_project/utils/styles.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/colors.dart';
 import 'package:intl/intl.dart';
-
-//Data model for ride record
-class RideRecord {
-  final String date;
-  final String time;
-  final String pickup;
-  final String dropoff;
-  final String amount;
-
-  RideRecord({
-    required this.date,
-    required this.time,
-    required this.pickup,
-    required this.dropoff,
-    required this.amount,
-  });
-}
+import 'package:provider/provider.dart';
+import '../models/user_model.dart';
+import '../services/database.dart';
 
 //Reusable widget for each ride history block
 class RideHistoryBlock extends StatelessWidget {
@@ -140,36 +126,14 @@ class RideHistoryPage extends StatefulWidget {
 }
 
 class RideHistoryPageState extends State<RideHistoryPage> {
-  List<RideRecord> rideRecords = [
-    RideRecord(date: '10/05/2025', time: '14:28 - 15:17', pickup: 'Maltepe', dropoff: 'Tuzla', amount: '250 ₺'),
-    RideRecord(date: '08/01/2025', time: '11:18 - 12:04', pickup: 'Kadıköy', dropoff: 'Kartal', amount: '350 ₺'),
-    RideRecord(date: '24/11/2024', time: '18:40 - 19:25', pickup: 'Beyoğlu', dropoff: 'Fatih', amount: '300 ₺'),
-    RideRecord(date: '13/07/2024', time: '21:24 - 23:33', pickup: 'Beşiktaş', dropoff: 'Karaköy', amount: '150 ₺'),
-    RideRecord(date: '01/06/2024', time: '09:15 - 10:00', pickup: 'Şişli', dropoff: 'Levent', amount: '200 ₺'),
-    RideRecord(date: '01/05/2024', time: '10:22 - 10:57', pickup: 'Şişhane', dropoff: 'Topkapı', amount: '220 ₺'),
-  ];
-
   int currentPage = 1;
   final int recordsPerPage = 5;
-
+  String sortOption = 'Date Descending';
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
+
   void sortRecords(String option) {
     setState(() {
-      if (option == 'Date Ascending') {
-        rideRecords.sort((a, b) => dateFormat.parse(a.date).compareTo(dateFormat.parse(b.date)));
-      } else if (option == 'Date Descending') {
-        rideRecords.sort((a, b) => dateFormat.parse(b.date).compareTo(dateFormat.parse(a.date)));
-      } else if (option == 'Amount Ascending') {
-        rideRecords.sort((a, b) => double.parse(a.amount.split(' ')[0]).compareTo(double.parse(b.amount.split(' ')[0])));
-      } else if (option == 'Amount Descending') {
-        rideRecords.sort((a, b) => double.parse(b.amount.split(' ')[0]).compareTo(double.parse(a.amount.split(' ')[0])));
-      }
-    });
-  }
-
-  void deleteRecord(int index) {
-    setState(() {
-      rideRecords.removeAt(index);
+      sortOption = option;
     });
   }
 
@@ -210,8 +174,41 @@ class RideHistoryPageState extends State<RideHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    int totalPages = (rideRecords.length / recordsPerPage).ceil();
-    List<RideRecord> currentRecords = rideRecords
+    final user = Provider.of<MyUser?>(context);
+    final dbService = DatabaseService(uid: user!.uid);
+    final rideRecords = Provider.of<List<RideRecord>?>(context);
+
+    if (rideRecords == null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: AppColors.appBarBackground,
+          leading: IconButton(
+            icon: Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          title: Text('Ride History', style: kAppBarText),
+          centerTitle: true,
+        ),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    List<RideRecord> sortedRecords = List.from(rideRecords);
+    if (sortOption == 'Date Ascending') {
+      sortedRecords.sort((a, b) => dateFormat.parse(a.date).compareTo(dateFormat.parse(b.date)));
+    } else if (sortOption == 'Date Descending') {
+      sortedRecords.sort((a, b) => dateFormat.parse(b.date).compareTo(dateFormat.parse(a.date)));
+    } else if (sortOption == 'Amount Ascending') {
+      sortedRecords.sort((a, b) => double.parse(a.amount.split(' ')[0]).compareTo(double.parse(b.amount.split(' ')[0])));
+    } else if (sortOption == 'Amount Descending') {
+      sortedRecords.sort((a, b) => double.parse(b.amount.split(' ')[0]).compareTo(double.parse(a.amount.split(' ')[0])));
+    }
+
+    int totalPages = (sortedRecords.length / recordsPerPage).ceil();
+    List<RideRecord> currentRecords = sortedRecords
         .skip((currentPage - 1) * recordsPerPage)
         .take(recordsPerPage)
         .toList();
@@ -303,7 +300,7 @@ class RideHistoryPageState extends State<RideHistoryPage> {
                           ),
                           TextButton(
                             onPressed: () {
-                              deleteRecord((currentPage - 1) * recordsPerPage + index);
+                              dbService.removeRideRecord(record.id);
                               Navigator.pop(context);
                             },
                             child: Text('Delete'),

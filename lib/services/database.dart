@@ -39,7 +39,6 @@ class DatabaseService {
     String userType,
     int cardCount,
     int cardID,
-    int historyId,
   ) async {
       return await userCollection.doc(uid).set({
         'name': name,
@@ -49,7 +48,6 @@ class DatabaseService {
         'userType': userType,
         'cardCount': cardCount,
         'cardID': cardID,
-        'historyId': historyId,
       });
   }
 
@@ -117,7 +115,6 @@ class DatabaseService {
         userType: snapshot['userType'],
         cardCount: snapshot['cardCount'],
         cardID: snapshot['cardID'],
-        historyId: snapshot['historyId'],
     );
   }
 

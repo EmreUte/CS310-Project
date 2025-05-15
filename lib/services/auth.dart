@@ -28,11 +28,11 @@ class AuthService {
   }
 
   // Register with email pass
-  Future registerEmailPass(String name, String email, String phone, String plateNumber, int cardID, int cardCount, String password, String userType, int historyId) async {
+  Future registerEmailPass(String name, String email, String phone, String plateNumber, int cardID, int cardCount, String password, String userType) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
       User? user = result.user;
-      await DatabaseService(uid: user!.uid).updateUserData(name, email, phone, plateNumber, userType, cardCount, cardID, historyId);
+      await DatabaseService(uid: user!.uid).updateUserData(name, email, phone, plateNumber, userType, cardCount, cardID);
       return _userFromFirebaseUser(user);
     }
     catch(e) {

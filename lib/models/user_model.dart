@@ -19,8 +19,6 @@ class UserModel {
   final int cardCount;
   final int cardID;
 
-  final int historyId;
-
   UserModel({
     required this.uid,
     required this.name,
@@ -30,7 +28,6 @@ class UserModel {
     required this.userType,
     required this.cardCount,
     required this.cardID,
-    required this.historyId,
   });
 }
 
