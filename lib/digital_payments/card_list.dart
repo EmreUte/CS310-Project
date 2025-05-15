@@ -75,7 +75,7 @@ class _CardListState extends State<CardList> {
               ).toList(),
             ),
           SizedBox(height: 20),
-          if (userdata != null && userdata.cardCount < 1)
+          if (userdata != null && userdata.cardCount < 4)
             Row(
               children: [
                 TextButton.icon(
