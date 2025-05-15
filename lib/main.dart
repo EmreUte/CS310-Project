@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
               child: MaterialApp(
                   title: 'MyRide',
                   debugShowCheckedModeBanner: false,
-                  initialRoute: '/',
+                  initialRoute: '/passenger_preferences',
                   routes: {
                     '/': (context) => const Wrapper(),
                     '/add_new_payment': (context) => AddNewCard(),
