@@ -9,19 +9,6 @@ class FaqScreen extends StatelessWidget {
     "How can I find a ride?",
     "How is the matching between driver and passengers done?",
     "Can I use cash?",
-    "...",
-    "...",
-    "...",
-    "...",
-    "...",
-    "...",
-    "...",
-    "...",
-    "...",
-    "...",
-    "...",
-    "...",
-    "...",
   ];
 
   const FaqScreen({super.key});

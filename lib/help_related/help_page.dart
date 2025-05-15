@@ -1,3 +1,4 @@
+import 'package:cs310_project/help_related/contact_us_page.dart';
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/dimensions.dart';
@@ -75,12 +76,11 @@ class HelpScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: TextButton(
-                onPressed: () { /*
+                onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => HelpScreen()),
+                    MaterialPageRoute(builder: (context) => ContactUsScreen()),
                   );
-                  */
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

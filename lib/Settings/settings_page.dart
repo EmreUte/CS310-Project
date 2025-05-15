@@ -4,6 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/auth.dart';
 import '../utils/colors.dart';
 import '../services/database.dart';
+import 'package:provider/provider.dart';
+import '../models/user_model.dart';
+
 
 
 class SettingsPage extends StatefulWidget {
@@ -41,7 +44,25 @@ class SettingsPageState extends State<SettingsPage> {
           _settingsTile(
               'Personal information',
               Icon(Icons.play_arrow),
+                  () {
+                final myUser = Provider.of<MyUser?>(context, listen: false);
+                if (myUser != null) {
+                  final dbService = DatabaseService(uid: myUser.uid);
+                  dbService.userData.first.then((userData) {
+
+                    if (userData != null) {
+                      if (userData.userType == 'Driver') {
+                        Navigator.pushNamed(context, '/driver_information');
+                      } else {
+                        Navigator.pushNamed(context, '/passenger_information');
+                      }
+                    }
+                  });
+                }
+              }
           ),
+
+
           _settingsTile('Request account info', Icon(Icons.play_arrow)),
           _settingsTile('Delete account', Icon(Icons.play_arrow)),
 
