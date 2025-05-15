@@ -42,34 +42,34 @@ class MyApp extends StatelessWidget {
         // Once complete, show your application
         if (snapshot.connectionState == ConnectionState.done) {
           return StreamProvider<MyUser?>.value(
-            value: AuthService().user,
-            initialData: null,
-            child: MaterialApp(
-              title: 'MyRide',
-              debugShowCheckedModeBanner: false,
-              initialRoute: '/passenger_preferences',
-              routes: {
-                '/': (context) => const Wrapper(),
-                '/add_new_payment': (context) => AddNewCard(),
-                '/driver_information': (context) => DriverInformationScreen(),
-                '/passenger_profile': (context) => PassengerProfile(),
-                '/driver_profile': (context) => DriverProfile(),
-                '/passenger_information': (context) => PassengerInformationScreen(),
-                '/driver_preferences': (context) => DriverPreferencesScreen(),
-                '/passenger_preferences': (context) => PassengerPreferencesScreen(),
-                '/finding_your_ride': (context) => FindingRideScreen(),
-                '/help_page': (context) => HelpScreen(),
-                '/faq_page': (context) => FaqScreen(),
-              },
-              theme: ThemeData.light().copyWith(
-                appBarTheme: AppBarTheme(
-                  backgroundColor: AppColors.appBarBackground,
-                  elevation: 0.0,
-                  centerTitle: true,
-                ),
-                scaffoldBackgroundColor: Colors.white,
+              value: AuthService().user,
+              initialData: null,
+              child: MaterialApp(
+                  title: 'MyRide',
+                  debugShowCheckedModeBanner: false,
+                  initialRoute: '/',
+                  routes: {
+                    '/': (context) => const Wrapper(),
+                    '/add_new_payment': (context) => AddNewCard(),
+                    '/driver_information': (context) => DriverInformationScreen(),
+                    '/passenger_profile': (context) => PassengerProfile(),
+                    '/driver_profile': (context) => DriverProfile(),
+                    '/passenger_information': (context) => PassengerInformationScreen(),
+                    '/driver_preferences': (context) => DriverPreferencesScreen(),
+                    '/passenger_preferences': (context) => PassengerPreferencesScreen(),
+                    '/finding_your_ride': (context) => FindingRideScreen(),
+                    '/help_page': (context) => HelpScreen(),
+                    '/faq_page': (context) => FaqScreen(),
+                  },
+                  theme: ThemeData.light().copyWith(
+                    appBarTheme: AppBarTheme(
+                      backgroundColor: AppColors.appBarBackground,
+                      elevation: 0.0,
+                      centerTitle: true,
+                    ),
+                    scaffoldBackgroundColor: Colors.white,
+                  ),
               ),
-            ),
           );
         }
 

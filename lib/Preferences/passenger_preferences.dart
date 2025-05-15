@@ -53,9 +53,9 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
   Future<List<Map<String, dynamic>>> searchAddress(String query) async {
     final response = await http.get(
       //OpenStreetMap
-      Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=$query&countrycodes=tr'), // Turkey-only results
+      //Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=$query&countrycodes=tr'), // Turkey-only results
       //Stadia Maps
-      //Uri.parse("https://api.stadiamaps.com/geocoding/v1/search?text=$query&api_key=ca885b1b-d8dd-44b4-9036-d78e3405996c&countrycodes=tr"),
+      Uri.parse("https://api.stadiamaps.com/geocoding/v1/search?text=$query&api_key=ca885b1b-d8dd-44b4-9036-d78e3405996c&countrycodes=tr"),
 
     );
 
@@ -69,8 +69,8 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
     }
     debugPrint("Bad requests all around");
     debugPrint(response.statusCode.toString());
-    return [];
-  }
+    return[];
+    }
 
 
 

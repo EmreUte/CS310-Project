@@ -48,8 +48,16 @@ class DatabaseService {
         'userType': userType,
         'cardCount': cardCount,
         'cardID': cardID,
+        'isOnline': true,
       });
   }
+
+  Future setOnlineStatus(bool status) async {
+    return await userCollection.doc(uid).set({
+      'isOnline': status,
+    }, SetOptions(merge: true));
+  }
+
 
   // gift list from snapshot
   Future addCreditCard(CreditCard card) async {
@@ -98,6 +106,22 @@ class DatabaseService {
         cardCount: snapshot['cardCount'],
         cardID: snapshot['cardID'],
     );
+  }
+
+  Future<Map<String, dynamic>?> getDriverInformation() async {
+    try {
+      DocumentSnapshot doc = await userCollection.doc(uid).get();
+      if (doc.exists) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        if (data.containsKey('driver_information')) {
+          return data['driver_information'] as Map<String, dynamic>;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error getting driver information: $e');
+      return null;
+    }
   }
 
   // get user doc stream
