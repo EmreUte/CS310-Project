@@ -8,6 +8,8 @@ import 'dart:math';
 import '../utils/colors.dart';
 import '../utils/styles.dart';
 import '../maps/road_trip_map.dart';
+import 'dart:async';
+
 
 class RideProgressPassenger extends StatefulWidget {
   @override
@@ -40,6 +42,11 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
     _loadTripData();
     _checkPaymentMethod();
     _checkIfDriverEndedRide();
+
+    Timer.periodic(Duration(seconds: 2), (timer) {
+      _checkIfDriverEndedRide();
+      if (driverEndedRide) timer.cancel();
+    });
   }
 
   Future<void> _loadTripData() async {
@@ -111,16 +118,16 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
   Future<String> _getLocationName(double lat, double lng) async {
     try {
       final response = await http.get(
-          Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&zoom=18&addressdetails=1'),
-          headers: {
-            'User-Agent': 'MyRideApp/1.0 (your_email@example.com)' // replace with a real email or domain
-          }
+        Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng'),
+        headers: {
+          'User-Agent': 'MyRideApp/1.0 (hcancaglar99@gmail.com)',  // use a valid email or domain
+        },
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final address = data['address'];
-        return '${address['suburb'] ?? address['neighbourhood'] ?? address['road'] ?? address['city'] ?? address['state'] ?? 'Unknown'}, ${address['country'] ?? ''}';
+        final displayName = data['display_name'];
+        return displayName ?? 'Unknown Location';
       }
       return 'Unknown Location';
     } catch (e) {
@@ -128,6 +135,7 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
       return 'Unknown Location';
     }
   }
+
 
 
   Map<String, String> _calculateTripDetails(

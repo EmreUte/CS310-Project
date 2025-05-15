@@ -94,16 +94,16 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
   Future<String> _getLocationName(double lat, double lng) async {
     try {
       final response = await http.get(
-          Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&zoom=18&addressdetails=1'),
-          headers: {
-            'User-Agent': 'MyRideApp/1.0 (your_email@example.com)' // replace with a real email or domain
-          }
+        Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng'),
+        headers: {
+          'User-Agent': 'MyRideApp/1.0 (hcancaglar99@gmail.com)',  // use a valid email or domain
+        },
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final address = data['address'];
-        return '${address['suburb'] ?? address['neighbourhood'] ?? address['road'] ?? address['city'] ?? address['state'] ?? 'Unknown'}, ${address['country'] ?? ''}';
+        final displayName = data['display_name'];
+        return displayName ?? 'Unknown Location';
       }
       return 'Unknown Location';
     } catch (e) {
