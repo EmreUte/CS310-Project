@@ -3,6 +3,12 @@ import '../utils/colors.dart';
 import '../utils/styles.dart';
 import '../services/database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import '../models/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+
+
 
 
 class DriverInformationScreen extends StatefulWidget {
@@ -13,7 +19,7 @@ class DriverInformationScreen extends StatefulWidget {
       _DriverInformationScreen();
 }
 
-class _DriverInformationScreen extends State<DriverInformationScreen>{
+class _DriverInformationScreen extends State<DriverInformationScreen> {
   bool _isEditable = false;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
@@ -22,7 +28,8 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _plateController = TextEditingController();
 
-
+  late DatabaseService _dbService;
+  AsyncSnapshot<UserModel?>? _userSnapshot;
 
   @override
   void dispose() {
@@ -36,110 +43,131 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: AppColors.appBarBackground,
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title:  Text(
-          'Driver Information',
-          style: kAppBarText,
-        ),
+    final user = Provider.of<MyUser?>(context);
+    _dbService = DatabaseService(uid: user!.uid);
+
+    return StreamBuilder<UserModel?>(
+        stream: _dbService.userData,
+        builder: (context, snapshot) {
+          // Store the snapshot for use in other methods
+          _userSnapshot = snapshot;
+
+          if (snapshot.hasData && snapshot.data != null) {
+            _nameController.text = snapshot.data!.name;
+            _emailController.text = snapshot.data!.email;
+            _phoneController.text = snapshot.data!.phone;
+            _plateController.text = snapshot.data!.plateNumber;
+          }
+
+          return Scaffold(
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              centerTitle: true,
+              backgroundColor: AppColors.appBarBackground,
+              leading: IconButton(
+                icon: const Icon(Icons.chevron_left_outlined, size: 33,
+                    color: AppColors.primaryText),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: Text(
+                'Driver Information',
+                style: kAppBarText,
+              ),
 
 
-      ),
+            ),
 
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 40),
-                _buildAvatar(),
-                const SizedBox(height: 40),
-                _buildInputField(
-                  label: 'Name',
-                  controller: _nameController,
-                  icon: Icons.person,
-                  isEditable: false,
-                ),
-                const SizedBox(height: 22),
-                _buildInputField(
-                  label: 'E-mail',
-                  controller: _emailController,
-                  icon: Icons.email,
-                  isEditable: false,
-                ),
-                const SizedBox(height: 22),
-                _buildInputField(
-                  label: 'Phone',
-                  controller: _phoneController,
-                  icon: Icons.phone,
-                  isEditable: true,
-                ),
-                const SizedBox(height: 22),
-                _buildInputField(
-                  label: 'New Password?',
-                  controller: _passwordController,
-                  icon: Icons.lock,
-                  isPassword: true,
-                  isEditable: true,
-                ),
-                const SizedBox(height: 22),
-                _buildInputField(
-                  label: 'Plate Number',
-                  controller: _plateController,
-                  isPassword: false,
-                  isEditable: true,
-                ),
-                const SizedBox(height: 3),
-                Align(
-                  alignment: Alignment.center,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _isEditable = !_isEditable;
-                        if (!_isEditable) {
-                          if (_formKey.currentState!.validate()) {
-                            _formKey.currentState!.save();
-                            // _saveUserData();
-                          } else {
-                            // If validation fails, keep in edit mode
-                            _isEditable = true;
-                          }
-                        }
-                      });
-                    },
-
-                    style: ElevatedButton.styleFrom(
-
-                      backgroundColor: AppColors.buttonBackground,
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14,),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+            body: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 26, vertical: 20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 40),
+                      _buildAvatar(),
+                      const SizedBox(height: 40),
+                      _buildInputField(
+                        label: 'Name',
+                        controller: _nameController,
+                        icon: Icons.person,
+                        isEditable: false,
                       ),
-                    ),
-                    child: Text(
-                      _isEditable ? 'Done' : 'Edit',
-                      style:  kButtonText,
+                      const SizedBox(height: 22),
+                      _buildInputField(
+                        label: 'E-mail',
+                        controller: _emailController,
+                        icon: Icons.email,
+                        isEditable: false,
+                      ),
+                      const SizedBox(height: 22),
+                      _buildInputField(
+                        label: 'Phone',
+                        controller: _phoneController,
+                        icon: Icons.phone,
+                        isEditable: true,
+                      ),
+                      const SizedBox(height: 22),
+                      _buildInputField(
+                        label: 'New Password?',
+                        controller: _passwordController,
+                        icon: Icons.lock,
+                        isPassword: true,
+                        isEditable: true,
+                      ),
+                      const SizedBox(height: 22),
+                      _buildInputField(
+                        label: 'Plate Number',
+                        controller: _plateController,
+                        isPassword: false,
+                        isEditable: true,
+                      ),
+                      const SizedBox(height: 3),
+                      Align(
+                        alignment: Alignment.center,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _isEditable = !_isEditable;
+                              if (!_isEditable) {
+                                if (_formKey.currentState!.validate()) {
+                                  _formKey.currentState!.save();
+                                  // _saveUserData();
+                                } else {
+                                  // If validation fails, keep in edit mode
+                                  _isEditable = true;
+                                }
+                              }
+                            });
+                          },
 
-                    ),
+                          style: ElevatedButton.styleFrom(
+
+                            backgroundColor: AppColors.buttonBackground,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 14,),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            _isEditable ? 'Done' : 'Edit',
+                            style: kButtonText,
+
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 40),
+                    ],
                   ),
                 ),
-
-                const SizedBox(height: 40),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
+          );
+        }
     );
   }
 
@@ -216,7 +244,33 @@ class _DriverInformationScreen extends State<DriverInformationScreen>{
         },
 
         onSaved: (value) {
+          if (_userSnapshot != null && _userSnapshot!.hasData &&
+              _userSnapshot!.data != null) {
+            final userData = _userSnapshot!.data!;
 
+            // Check if phone or plate number has changed
+            if (!isPassword &&
+                ((controller == _phoneController &&
+                    _phoneController.text != userData.phone) ||
+                    (controller == _plateController &&
+                        _plateController.text != userData.plateNumber))) {
+              _dbService.updateUserData(
+                userData.name,
+                userData.email,
+                _phoneController.text,
+                _plateController.text,
+                userData.userType,
+                userData.cardCount,
+                userData.cardID,
+              );
+            }
+
+            if (isPassword && _passwordController.text.isNotEmpty) {
+              // Update password if provided
+              FirebaseAuth.instance.currentUser?.updatePassword(
+                  _passwordController.text);
+            }
+          }
         },
       ),
     );
