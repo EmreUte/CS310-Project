@@ -6,6 +6,8 @@ import '../utils/dimensions.dart';
 import '../utils/styles.dart';
 import '../services/database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 
 class PassengerInformationScreen extends StatefulWidget {
@@ -23,6 +25,9 @@ class _PassengerInformationScreenState extends State<PassengerInformationScreen>
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  late DatabaseService _dbService;
+  AsyncSnapshot<UserModel?>? _userSnapshot;
+
 
   @override
   void dispose() {
@@ -36,100 +41,114 @@ class _PassengerInformationScreenState extends State<PassengerInformationScreen>
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<MyUser?>(context);
-    final dbService = DatabaseService(uid: user!.uid);
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Passenger Information',
-          style: kAppBarText,
-        ),
+    _dbService = DatabaseService(uid: user!.uid);
+    return StreamBuilder<UserModel?>(
+        stream: _dbService.userData,
+        builder: (context, snapshot)
 
-      ),
-      body: SingleChildScrollView(
+    {
+      _userSnapshot = snapshot;
+      if (snapshot.hasData && snapshot.data != null) {
+        _nameController.text = snapshot.data!.name;
+        _emailController.text = snapshot.data!.email;
+        _phoneController.text = snapshot.data!.phone;
+      }
 
-      child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 40),
-                _buildAvatar(),
-                const SizedBox(height: 40),
-                _buildInputField(
-                  label: 'Name',
-                  controller: _nameController,
-                  icon: Icons.person,
-                  isEditable: false,
-                ),
-                const SizedBox(height: 22),
-                _buildInputField(
-                  label: 'E-mail',
-                  controller: _emailController,
-                  icon: Icons.email,
-                  isEditable: false,
-                ),
-                const SizedBox(height: 22),
-                _buildInputField(
-                  label: 'Phone',
-                  controller: _phoneController,
-                  icon: Icons.phone,
-                  isEditable: true,
-                ),
-                const SizedBox(height: 22),
-                _buildInputField(
-                  label: 'New Password?',
-                  controller: _passwordController,
-                  icon: Icons.lock,
-                  isPassword: true,
-                  isEditable: true,
-                ),
-                const SizedBox(height: 40),
-                Align(
-                  alignment: Alignment.center,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _isEditable = !_isEditable;
-                        if (!_isEditable) {
-                          if (_formKey.currentState!.validate()) {
-                            _formKey.currentState!.save();
-                            // dbService.;
-                          } else {
-                            // If validation fails, keep in edit mode
-                            _isEditable = true;
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.chevron_left_outlined, size: 33,
+                color: AppColors.primaryText),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(
+            'Passenger Information',
+            style: kAppBarText,
+          ),
+
+        ),
+        body: SingleChildScrollView(
+
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 40),
+                  _buildAvatar(),
+                  const SizedBox(height: 40),
+                  _buildInputField(
+                    label: 'Name',
+                    controller: _nameController,
+                    icon: Icons.person,
+                    isEditable: false,
+                  ),
+                  const SizedBox(height: 22),
+                  _buildInputField(
+                    label: 'E-mail',
+                    controller: _emailController,
+                    icon: Icons.email,
+                    isEditable: false,
+                  ),
+                  const SizedBox(height: 22),
+                  _buildInputField(
+                    label: 'Phone',
+                    controller: _phoneController,
+                    icon: Icons.phone,
+                    isEditable: true,
+                  ),
+                  const SizedBox(height: 22),
+                  _buildInputField(
+                    label: 'New Password?',
+                    controller: _passwordController,
+                    icon: Icons.lock,
+                    isPassword: true,
+                    isEditable: true,
+                  ),
+                  const SizedBox(height: 40),
+                  Align(
+                    alignment: Alignment.center,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _isEditable = !_isEditable;
+                          if (!_isEditable) {
+                            if (_formKey.currentState!.validate()) {
+                              _formKey.currentState!.save();
+                            } else {
+                              _isEditable = true;
+                            }
                           }
-                        }
-                      });
-                    },
+                        });
+                      },
 
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.buttonBackground,
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14), // width!
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.buttonBackground,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 40, vertical: 14), // width!
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        _isEditable ? 'Done' : 'Edit',
+                        style: kButtonText,
                       ),
                     ),
-                    child: Text(
-                      _isEditable ? 'Done' : 'Edit',
-                      style:  kButtonText,
-                    ),
                   ),
-                ),
 
-                const SizedBox(height: 40),
-              ],
+                  const SizedBox(height: 40),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      }
     );
   }
 
@@ -158,6 +177,7 @@ class _PassengerInformationScreenState extends State<PassengerInformationScreen>
     bool isPassword = false,
     bool isEditable = true,
   }) {
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
@@ -216,7 +236,29 @@ class _PassengerInformationScreenState extends State<PassengerInformationScreen>
           return null;
         },
 
-        onSaved: (value) {
+          onSaved: (value) {
+          if (_userSnapshot != null && _userSnapshot!.hasData && _userSnapshot!.data != null) {
+            final userData = _userSnapshot!.data!;
+
+            if (!isPassword && _phoneController.text != userData.phone) {
+              // Only update if phone number has changed
+              _dbService.updateUserData(
+                userData.name,
+                userData.email,
+                _phoneController.text,
+                userData.plateNumber,
+                userData.userType,
+                userData.cardCount,
+                userData.cardID,
+              );
+            }
+
+            if (isPassword && _passwordController.text.isNotEmpty) {
+              // Update password if provided
+              FirebaseAuth.instance.currentUser?.updatePassword(
+                  _passwordController.text);
+            }
+          }
         },
       ),
     );

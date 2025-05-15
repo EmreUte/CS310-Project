@@ -13,6 +13,23 @@ class DatabaseService {
   final CollectionReference userCollection = FirebaseFirestore.instance
       .collection('users');
 
+  final CollectionReference msgCollection = FirebaseFirestore.instance
+      .collection('emails');
+
+  Future sendMessage(String msg) async {
+    try {
+      // Create a new document in the 'emails' collection with a unique ID
+      return await msgCollection.add({
+        'uid': uid, // Store the user's UID
+        'msg': msg, // Store the message
+        'timestamp': FieldValue.serverTimestamp(), // Add a server-side timestamp
+      });
+    } catch (e) {
+      print('Error logging message: $e');
+      rethrow; // Rethrow to handle errors in the UI
+    }
+  }
+
   // Update user data in Firestore
   Future updateUserData(
     String name,
@@ -42,7 +59,6 @@ class DatabaseService {
         .doc(card.id)
         .set(card.toMap());
   }
-
   Future removeCreditCard(String cardID) async {
       return await userCollection
           .doc(uid)
@@ -50,7 +66,6 @@ class DatabaseService {
           .doc(cardID)
           .delete();
   }
-
   List<CreditCard> _cardListFromSnapshot(QuerySnapshot snapshot) {
     return snapshot.docs.map((doc) {
       return CreditCard(
@@ -63,7 +78,6 @@ class DatabaseService {
       );
     }).toList();
   }
-
   // get cards stream
   Stream<List<CreditCard>> get cards {
     return userCollection
