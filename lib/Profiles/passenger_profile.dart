@@ -26,56 +26,67 @@ class _PassengerProfileState extends State<PassengerProfile> {
   Widget build(BuildContext context) {
     final user = Provider.of<MyUser?>(context);
     final dbService = DatabaseService(uid: user!.uid);
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: AppColors.appBarBackground,
-        automaticallyImplyLeading: false,
-        title: Text(
-          userName,
-          style: kHeadingText.copyWith(color: AppColors.primaryText),
-        ),
+    return StreamBuilder<UserModel?>(
+        stream: dbService.userData,
+        builder: (context, snapshot)
+    {
+      if (snapshot.hasData && snapshot.data != null) {
+        userName = snapshot.data!.name;
+      }
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          centerTitle: true,
+          backgroundColor: AppColors.appBarBackground,
+          automaticallyImplyLeading: false,
+          title: Text(
+            userName,
+            style: kHeadingText.copyWith(color: AppColors.primaryText),
+          ),
 
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            color: AppColors.primaryText,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SettingsPage()),
-              );
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildButtonWithAvatar(context, "Find Your Ride!", FindingRideScreen()),
-              const SizedBox(height: 30),
-              _buildButton(context, "Preferences", const PassengerPreferencesScreen()),
-              const SizedBox(height: 30),
-              _buildButton(context, "Wallet", CreditCardScreen()),
-              const SizedBox(height: 30),
-              _buildButton(context, "Ride History", const RideHistoryPage()),
-              const SizedBox(height: 30),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.asset(
-                  'assets/map.png',
-                  height: 300,
-                  fit: BoxFit.cover,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.settings),
+              color: AppColors.primaryText,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SettingsPage()),
+                );
+              },
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildButtonWithAvatar(
+                    context, "Find Your Ride!", FindingRideScreen()),
+                const SizedBox(height: 30),
+                _buildButton(
+                    context, "Preferences", const PassengerPreferencesScreen()),
+                const SizedBox(height: 30),
+                _buildButton(context, "Wallet", CreditCardScreen()),
+                const SizedBox(height: 30),
+                _buildButton(context, "Ride History", const RideHistoryPage()),
+                const SizedBox(height: 30),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(
+                    'assets/map.png',
+                    height: 300,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
+      );
+    }
     );
   }
 

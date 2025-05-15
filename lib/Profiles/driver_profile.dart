@@ -27,45 +27,57 @@ class _DriverProfileState extends State<DriverProfile> {
   Widget build(BuildContext context) {
     final user = Provider.of<MyUser?>(context);
     final dbService = DatabaseService(uid: user!.uid);
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(
-          userName,
-          style: kHeadingText.copyWith(color: AppColors.primaryText),
-        ),
 
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            color: AppColors.primaryText,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SettingsPage()),
-              );
-            },
+    return StreamBuilder<UserModel?>(
+        stream: dbService.userData,
+        builder: (context, snapshot)
+    {
+      if (snapshot.hasData && snapshot.data != null) {
+        userName = snapshot.data!.name;
+      }
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: Text(
+            userName,
+            style: kHeadingText.copyWith(color: AppColors.primaryText),
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
+
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.settings),
+              color: AppColors.primaryText,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SettingsPage()),
+                );
+              },
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 90),
 
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildButtonWithAvatar(context, "Find Your Passenger!", FindingRideScreen()),
-              const SizedBox(height: 90),
-              // The other two buttons stay below
-              _buildButton(context, "Preferences", const DriverPreferencesScreen()),
-              const SizedBox(height: 90),
-              _buildButton(context, "Ride History", const RideHistoryPage()),
-            ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildButtonWithAvatar(
+                    context, "Find Your Passenger!", FindingRideScreen()),
+                const SizedBox(height: 90),
+                // The other two buttons stay below
+                _buildButton(
+                    context, "Preferences", const DriverPreferencesScreen()),
+                const SizedBox(height: 90),
+                _buildButton(context, "Ride History", const RideHistoryPage()),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      }
     );
   }
 
