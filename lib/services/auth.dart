@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import '../models/user_model.dart';
+import '../screens/welcome_page.dart';
 import 'database.dart';
 
 class AuthService {
@@ -52,4 +54,49 @@ class AuthService {
     }
   }
 
+  // Re-authenticate and delete account (user doc, emails, and auth) and navigate to welcome page
+  Future<bool> reauthenticateAndDeleteAccount({
+    required String uid,
+    required String email,
+    required String password,
+    BuildContext? context,
+  }) async {
+    try {
+      User? user = _auth.currentUser;
+      if (user == null) return false;
+
+      // Re-authenticate
+      AuthCredential credential = EmailAuthProvider.credential(email: email, password: password);
+      await user.reauthenticateWithCredential(credential);
+
+      // Delete Firestore user doc and emails
+      await DatabaseService(uid: uid).deleteUserAndEmails();
+
+      // Delete Firebase Auth user
+      await user.delete();
+
+      // Sign out (just in case)
+      await signOut();
+      
+      // If context was provided, navigate to welcome page
+      if (context != null) {
+        // Add a short delay to ensure auth state changes are processed
+        await Future.delayed(Duration(milliseconds: 200));
+        
+        // Use a post-frame callback to ensure navigation happens after any frame rebuilds
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // Navigate to the welcome page and clear the navigation stack
+          Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+            'welcome',
+            (route) => false,
+          );
+        });
+      }
+      
+      return true;
+    } catch (e) {
+      print("Delete account error: $e");
+      return false;
+    }
+  }
 }

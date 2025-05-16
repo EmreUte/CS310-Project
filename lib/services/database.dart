@@ -111,6 +111,7 @@ class DatabaseService {
   }
 
   UserModel? _userDataFromSnapshot(DocumentSnapshot snapshot) {
+    if (!snapshot.exists) return null;
     return UserModel(
         uid: uid,
         name: snapshot['name'],
@@ -125,4 +126,17 @@ class DatabaseService {
   Stream<UserModel?> get userData {
     return userCollection.doc(uid).snapshots().map(_userDataFromSnapshot);
   }
+
+  // Delete user doc and all emails with this uid
+  Future<void> deleteUserAndEmails() async {
+    // Delete user document
+    await userCollection.doc(uid).delete();
+
+    // Find and delete all emails with this uid
+    final emails = await msgCollection.where('uid', isEqualTo: uid).get();
+    for (var doc in emails.docs) {
+      await msgCollection.doc(doc.id).delete();
+    }
+  }
 }
+

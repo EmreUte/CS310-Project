@@ -62,6 +62,7 @@ class MyApp extends StatelessWidget {
                 '/help_page': (context) => HelpScreen(),
                 '/faq_page': (context) => FaqScreen(),
                 '/settings': (context) => SettingsPage(),
+                'welcome': (context) => WelcomePage(),
               },
               theme: ThemeData.light().copyWith(
                 appBarTheme: AppBarTheme(
