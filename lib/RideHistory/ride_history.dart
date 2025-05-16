@@ -156,12 +156,24 @@ class RideHistoryPageState extends State<RideHistoryPage> {
     );
   }
 
-  void showDetailsPopup() {
+  void showDetailsPopup(RideRecord record) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Ride Details'),
-        content: Text('Details and driver info will be shown here.'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Driver: ${record.driverName}', style: TextStyle(fontSize: 16)),
+              SizedBox(height: 8),
+              Text('Passenger: ${record.passengerName}', style: TextStyle(fontSize: 16)),
+              SizedBox(height: 8),
+              Text('Vehicle Plate Number: ${record.plateNumber}', style: TextStyle(fontSize: 16)),
+            ],
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -310,7 +322,7 @@ class RideHistoryPageState extends State<RideHistoryPage> {
                     );
                   },
                   onRate: showRatingPopup,
-                  onDetails: showDetailsPopup,
+                  onDetails: () => showDetailsPopup(record),
                 );
               },
             ),

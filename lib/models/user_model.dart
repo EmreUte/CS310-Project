@@ -38,6 +38,9 @@ class RideRecord {
   final String pickup;
   final String dropoff;
   final String amount;
+  final String driverName;
+  final String passengerName;
+  final String plateNumber;
 
   RideRecord({
     required this.id,
@@ -46,6 +49,9 @@ class RideRecord {
     required this.pickup,
     required this.dropoff,
     required this.amount,
+    required this.driverName,
+    required this.passengerName,
+    required this.plateNumber,
   });
 
   Map<String, dynamic> toMap() {
@@ -55,17 +61,23 @@ class RideRecord {
       'pickup': pickup,
       'dropoff': dropoff,
       'amount': amount,
+      'driverName': driverName,
+      'passengerName': passengerName,
+      'plateNumber': plateNumber,
     };
   }
 
   factory RideRecord.fromDocument(DocumentSnapshot doc) {
     return RideRecord(
       id: doc.id,
-      date: doc['date'],
-      time: doc['time'],
-      pickup: doc['pickup'],
-      dropoff: doc['dropoff'],
-      amount: doc['amount'],
+      date: doc['date'] ?? '',
+      time: doc['time'] ?? '',
+      pickup: doc['pickup'] ?? '',
+      dropoff: doc['dropoff'] ?? '',
+      amount: doc['amount'] ?? '',
+      driverName: doc['driverName'] ?? 'Unknown',
+      passengerName: doc['passengerName'] ?? 'Unknown',
+      plateNumber: doc['plateNumber'] ?? 'Unknown',
     );
   }
 }
