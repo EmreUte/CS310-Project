@@ -91,6 +91,12 @@ class DatabaseService {
     return await userCollection.doc(uid).collection('ride_history').add(record.toMap());
   }
 
+  Future updateRideRating(String rideId, int rating) async {
+    return await userCollection.doc(uid).collection('ride_history').doc(rideId).update({
+      'rating': rating,
+    });
+  }
+
   Future removeRideRecord(String rideId) async {
     return await userCollection.doc(uid).collection('ride_history').doc(rideId).delete();
   }

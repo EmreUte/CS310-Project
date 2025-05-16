@@ -41,6 +41,7 @@ class RideRecord {
   final String driverName;
   final String passengerName;
   final String plateNumber;
+  final int rating;
 
   RideRecord({
     required this.id,
@@ -52,6 +53,7 @@ class RideRecord {
     required this.driverName,
     required this.passengerName,
     required this.plateNumber,
+    this.rating = 0,
   });
 
   Map<String, dynamic> toMap() {
@@ -64,6 +66,7 @@ class RideRecord {
       'driverName': driverName,
       'passengerName': passengerName,
       'plateNumber': plateNumber,
+      'rating': rating,
     };
   }
 
@@ -78,6 +81,7 @@ class RideRecord {
       driverName: doc['driverName'] ?? 'Unknown',
       passengerName: doc['passengerName'] ?? 'Unknown',
       plateNumber: doc['plateNumber'] ?? 'Unknown',
+      rating: doc['rating'] ?? 0,
     );
   }
 }

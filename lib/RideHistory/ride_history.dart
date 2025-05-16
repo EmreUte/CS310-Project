@@ -11,7 +11,7 @@ import '../services/database.dart';
 class RideHistoryBlock extends StatelessWidget {
   final RideRecord record;
   final VoidCallback onDelete;
-  final VoidCallback onRate;
+  final Function(int) onRate;
   final VoidCallback onDetails;
 
   const RideHistoryBlock ({super.key,
@@ -92,7 +92,7 @@ class RideHistoryBlock extends StatelessWidget {
                 children: [
                   IconButton(
                     icon: Icon(Icons.star, size: 20),
-                    onPressed: onRate,
+                    onPressed: () => onRate(record.rating),
                   ),
                   IconButton(
                     icon: Icon(Icons.delete, size: 20),
@@ -137,21 +137,45 @@ class RideHistoryPageState extends State<RideHistoryPage> {
     });
   }
 
-  void showRatingPopup() {
+  void showRatingPopup(RideRecord record, int initialRating) {
+    int selectedRating = initialRating;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Rate the Ride'),
-        content: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(5, (index) => Icon(Icons.star_border, color: Colors.amber)),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Submit'),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text('Rate the Ride'),
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(5, (index) {
+              return IconButton(
+                icon: Icon(
+                  index < selectedRating ? Icons.star : Icons.star_border,
+                  color: Colors.amber,
+                ),
+                onPressed: () {
+                  setState(() {
+                    selectedRating = index + 1; // 1 to 5
+                  });
+                },
+              );
+            }),
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async{
+                final user = Provider.of<MyUser?>(context, listen: false);
+                await DatabaseService(uid: user!.uid).updateRideRating(record.id, selectedRating);
+                Navigator.pop(context);
+              },
+              child: Text('Submit'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -321,7 +345,7 @@ class RideHistoryPageState extends State<RideHistoryPage> {
                       ),
                     );
                   },
-                  onRate: showRatingPopup,
+                  onRate: (initialRating) => showRatingPopup(record, initialRating),
                   onDetails: () => showDetailsPopup(record),
                 );
               },
