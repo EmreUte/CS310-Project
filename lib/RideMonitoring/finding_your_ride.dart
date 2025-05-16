@@ -8,6 +8,11 @@ import '../matching_calc/matching_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../services/ride_session_service.dart'; // NEW
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:latlong2/latlong.dart';
+
+
 
 class FindingRideScreen extends StatefulWidget {
   @override
@@ -65,33 +70,58 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
 
   Future<void> _runMatchingAlgorithm(String userId) async {
     try {
-      final matches = await findBestMatches();
+      final timeout = Duration(seconds: 10);
+      final pollingInterval = Duration(seconds: 1);
+      int waited = 0;
 
-      // Check if the current user is in any match
-      bool userMatched = false;
-      for (var match in matches) {
-        if (_userType == 'Driver' && match.driver.id == userId) {
-          userMatched = true;
-          break;
-        } else if (_userType == 'Passenger' && match.passenger.id == userId) {
-          userMatched = true;
-          break;
+      while (waited < timeout.inSeconds) {
+        final matches = await findBestMatches();
+
+        for (var match in matches) {
+          final isMatch = (_userType == 'Driver' && match.driver.id == userId) ||
+              (_userType == 'Passenger' && match.passenger.id == userId);
+
+          if (isMatch) {
+            final session = RideSessionService(
+              passengerId: match.passenger.id,
+              driverId: match.driver.id,
+            );
+
+            // ✅ Check if there's a saved destination from tap before match
+            final prefs = await SharedPreferences.getInstance();
+            final lat = prefs.getDouble('pending_destination_lat');
+            final lng = prefs.getDouble('pending_destination_lng');
+
+            if (lat != null && lng != null) {
+              await session.setDestination(LatLng(lat, lng));
+              await prefs.remove('pending_destination_lat');
+              await prefs.remove('pending_destination_lng');
+            }
+
+            // ✅ Mark user as ready
+            await session.setUserReady(_userType);
+
+            // ✅ Check if both are ready
+            final isReady = await session.isBothReady();
+            if (isReady) {
+              _startProgressAnimation();
+              return;
+            }
+          }
         }
+
+        await Future.delayed(pollingInterval);
+        waited += 1;
       }
 
-      if (userMatched) {
-        setState(() {
-          _matchFound = true;
-        });
-        _startProgressAnimation();
-      } else {
-        _showNoMatchFoundDialog();
-      }
+      _showNoMatchFoundDialog();
     } catch (e) {
       print('Error in matching algorithm: $e');
       _showNoMatchFoundDialog();
     }
   }
+
+
 
   void _showNoMatchFoundDialog() {
     // Cancel the timer if it's running

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:math';
@@ -21,11 +20,31 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
   String endLocation = "Loading...";
   String estimatedTime = "Calculating...";
   String amount = "Calculating...";
+  String? matchedPassengerId;
 
   @override
   void initState() {
     super.initState();
-    _loadTripData();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    matchedPassengerId = await _getMatchedPassengerId();
+    print('🎯 [Driver] matchedPassengerId = $matchedPassengerId');
+    await _loadTripData();
+  }
+
+  Future<String?> _getMatchedPassengerId() async {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    final sessions = await FirebaseFirestore.instance
+        .collection('ride_sessions')
+        .where('driverId', isEqualTo: currentUid)
+        .get();
+
+    if (sessions.docs.isNotEmpty) {
+      return sessions.docs.first.data()['passengerId'];
+    }
+    return null;
   }
 
   Future<void> _loadTripData() async {
@@ -34,11 +53,9 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
     });
 
     try {
-      // Get current user
       final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) return;
+      if (currentUser == null || matchedPassengerId == null) return;
 
-      // Get driver's location from Firestore
       final driverDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(currentUser.uid)
@@ -52,32 +69,24 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
       double? startLat = driverInfo['latitude']?.toDouble();
       double? startLng = driverInfo['longitude']?.toDouble();
 
-      // Get destination from SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      final destLat = prefs.getDouble('destination_lat');
-      final destLng = prefs.getDouble('destination_lng');
+      final sessionDoc = await FirebaseFirestore.instance
+          .collection('ride_sessions')
+          .doc('session_${matchedPassengerId}_${currentUser.uid}')
+          .get();
 
+      final dest = sessionDoc.data()?['destination'];
+      final destLat = dest?['lat'];
+      final destLng = dest?['lng'];
 
-
-
-
-      // Get location names using reverse geocoding
       if (startLat != null && startLng != null) {
         startLocation = await _getLocationName(startLat, startLng);
       }
 
       if (destLat != null && destLng != null) {
         endLocation = await _getLocationName(destLat, destLng);
-
-        // Calculate estimated time and fare
-        if (startLat != null && startLng != null) {
-          final tripDetails = _calculateTripDetails(
-              startLat, startLng, destLat, destLng
-          );
-
-          estimatedTime = tripDetails['time'] ?? "Unknown";
-          amount = tripDetails['fare'] ?? "Unknown";
-        }
+        final tripDetails = _calculateTripDetails(startLat!, startLng!, destLat, destLng);
+        estimatedTime = tripDetails['time'] ?? "Unknown";
+        amount = tripDetails['fare'] ?? "Unknown";
       }
 
       setState(() {
@@ -95,15 +104,11 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
     try {
       final response = await http.get(
         Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng'),
-        headers: {
-          'User-Agent': 'MyRideApp/1.0 (hcancaglar99@gmail.com)',  // use a valid email or domain
-        },
+        headers: {'User-Agent': 'MyRideApp/1.0 (hcancaglar99@gmail.com)'},
       );
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final displayName = data['display_name'];
-        return displayName ?? 'Unknown Location';
+        return data['display_name'] ?? 'Unknown Location';
       }
       return 'Unknown Location';
     } catch (e) {
@@ -112,65 +117,45 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
     }
   }
 
-
-  Map<String, String> _calculateTripDetails(
-      double startLat, double startLng, double endLat, double endLng
-      ) {
-    // Calculate distance using Haversine formula
-    const R = 6371.0; // Earth radius in km
+  Map<String, String> _calculateTripDetails(double startLat, double startLng, double endLat, double endLng) {
+    const R = 6371.0;
     final dLat = _toRadians(endLat - startLat);
     final dLon = _toRadians(endLng - startLng);
-
     final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_toRadians(startLat)) * cos(_toRadians(endLat)) *
-            sin(dLon / 2) * sin(dLon / 2);
-
+        cos(_toRadians(startLat)) * cos(_toRadians(endLat)) * sin(dLon / 2) * sin(dLon / 2);
     final c = 2 * atan2(sqrt(a), sqrt(1 - a));
     final distance = R * c;
-
-    // Estimate time (assuming average speed of 30 km/h in city)
     final timeInMinutes = (distance / 30 * 60).round();
-
-    // Calculate fare (base fare + distance fare)
     final baseFare = 50.0;
     final distanceFare = distance * 15.0;
     final totalFare = baseFare + distanceFare;
-
-    return {
-      'time': '$timeInMinutes minutes',
-      'fare': '${totalFare.round()} ₺',
-    };
+    return {'time': '$timeInMinutes minutes', 'fare': '${totalFare.round()} ₺'};
   }
 
-  double _toRadians(double degree) {
-    return degree * (pi / 180);
-  }
+  double _toRadians(double degree) => degree * (pi / 180);
 
   void handleEndRide() async {
     setState(() => rideEnded = true);
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('driverEndedRide', true); // ← NEW
-
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null || matchedPassengerId == null) return;
+    await FirebaseFirestore.instance
+        .collection('ride_sessions')
+        .doc('session_${matchedPassengerId}_${currentUser.uid}')
+        .update({'driverEnded': true});
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Ride Ended'),
         content: Text('You have successfully ended the ride. Waiting for passenger payment.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
-          ),
-        ],
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('OK'))],
       ),
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
+    print('🛠 RideProgressDriver build triggered, matchedPassengerId = $matchedPassengerId');
+    final driverId = FirebaseAuth.instance.currentUser!.uid;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -183,7 +168,9 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
         children: [
           SizedBox(
             height: 300,
-            child: RoadTripMap(),
+            child: matchedPassengerId == null
+                ? Center(child: CircularProgressIndicator())
+                : RoadTripMap(passengerId: matchedPassengerId!, driverId: driverId),
           ),
           const SizedBox(height: 12),
           Container(
@@ -202,15 +189,11 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
                   children: [
                     Icon(Icons.local_taxi),
                     SizedBox(width: 8),
-                    Expanded(
-                      child: Text(startLocation, style: kFillerText, overflow: TextOverflow.ellipsis),
-                    ),
+                    Expanded(child: Text(startLocation, style: kFillerText, overflow: TextOverflow.ellipsis)),
                     SizedBox(width: 8),
                     Icon(Icons.more_horiz),
                     SizedBox(width: 8),
-                    Expanded(
-                      child: Text(endLocation, style: kFillerText, overflow: TextOverflow.ellipsis),
-                    ),
+                    Expanded(child: Text(endLocation, style: kFillerText, overflow: TextOverflow.ellipsis)),
                   ],
                 ),
                 SizedBox(height: 8),
@@ -238,7 +221,7 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
             Padding(
               padding: EdgeInsets.only(bottom: 20),
               child: Text("Waiting for passenger to make payment...", style: kFillerTextSmall),
-            )
+            ),
         ],
       ),
     );

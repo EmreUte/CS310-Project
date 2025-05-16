@@ -4,18 +4,26 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math' as math;
+import '../services/ride_session_service.dart';
 
 
 class RoadTripMap extends StatefulWidget {
-  const RoadTripMap({super.key});
+  final String passengerId;
+  final String driverId;
+
+  const RoadTripMap({
+    super.key,
+    required this.passengerId,
+    required this.driverId,
+  });
 
   @override
   State<RoadTripMap> createState() => _RoadTripMapState();
 }
 
 class _RoadTripMapState extends State<RoadTripMap> {
+
   // Default center on Istanbul
   final LatLng defaultMapCenter = LatLng(41.0082, 28.9784);
 
@@ -40,8 +48,10 @@ class _RoadTripMapState extends State<RoadTripMap> {
   @override
   void initState() {
     super.initState();
+    print('🚀 RoadTripMap initState called');
     _loadPositions();
   }
+
 
   @override
   void dispose() {
@@ -54,86 +64,119 @@ class _RoadTripMapState extends State<RoadTripMap> {
     setState(() {
       _isLoading = true;
     });
+    throw Exception('🔥 TEST CRASH: _loadPositions is being executed');
+
+    debugPrint('🟢 Entered _loadPositions');
+
+    debugPrint('🚗 Starting _loadPositions...');
+    debugPrint('Passenger ID: ${widget.passengerId}');
+    debugPrint('Driver ID: ${widget.driverId}');
 
     try {
-      // Load destination from SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      final destLat = prefs.getDouble('destination_lat');
-      final destLng = prefs.getDouble('destination_lng');
+      // 1. Load destination from ride_sessions
+      final rideSession = RideSessionService(
+        passengerId: widget.passengerId,
+        driverId: widget.driverId,
+      );
 
-      if (destLat != null && destLng != null) {
-        destinationPosition = LatLng(destLat, destLng);
-        print('Loaded destination: $destLat, $destLng');
+      final dest = await rideSession.getDestination().catchError((e) {
+        debugPrint('❌ Error fetching destination from ride session: $e');
+      });
+
+      if (dest != null) {
+        destinationPosition = dest;
+        debugPrint('✅ Loaded destination from RideSessionService: $dest');
       } else {
-        print('No destination found in SharedPreferences');
+        debugPrint('⚠️ Destination is null in ride session.');
       }
 
-      // Load start position from Firestore
+      // 2. Get current Firebase user
       final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(currentUser.uid)
-            .get();
+      if (currentUser == null) {
+        debugPrint('❌ No authenticated user found.');
+        setState(() => _isLoading = false);
+        return;
+      }
 
-        if (userDoc.exists && userDoc.data() != null) {
-          final userData = userDoc.data()!;
+      debugPrint('👤 Current user UID: ${currentUser.uid}');
 
-          // Check if user is passenger or driver
-          if (userData['userType'] == 'Passenger' && userData.containsKey('passenger_information')) {
-            final passengerInfo = userData['passenger_information'];
-            if (passengerInfo != null &&
-                passengerInfo['latitude'] != null &&
-                passengerInfo['longitude'] != null) {
-              final lat = passengerInfo['latitude'];
-              final lng = passengerInfo['longitude'];
-              startPosition = LatLng(
-                double.parse(lat.toString()),
-                double.parse(lng.toString()),
-              );
-              print('Loaded passenger start position: $lat, $lng');
-            }
-          } else if (userData['userType'] == 'Driver' && userData.containsKey('driver_information')) {
-            final driverInfo = userData['driver_information'];
-            if (driverInfo != null &&
-                driverInfo['latitude'] != null &&
-                driverInfo['longitude'] != null) {
-              final lat = driverInfo['latitude'];
-              final lng = driverInfo['longitude'];
-              startPosition = LatLng(
-                double.parse(lat.toString()),
-                double.parse(lng.toString()),
-              );
-              print('Loaded driver start position: $lat, $lng');
-            }
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get()
+          .catchError((e) {
+        debugPrint('❌ Error fetching user document: $e');
+      });
+
+      if (!userDoc.exists) {
+        debugPrint('❌ User document does not exist in Firestore.');
+      }
+
+      final userData = userDoc.data();
+      if (userData == null) {
+        debugPrint('❌ User data is null.');
+      } else {
+        final userType = userData['userType'];
+        debugPrint('👤 User type: $userType');
+
+        if (userType == 'Passenger' &&
+            userData.containsKey('passenger_information')) {
+          final info = userData['passenger_information'];
+          final lat = info['latitude'];
+          final lng = info['longitude'];
+
+          if (lat != null && lng != null) {
+            startPosition = LatLng(double.parse(lat.toString()), double.parse(lng.toString()));
+            debugPrint('📍 Loaded start position (Passenger): $startPosition');
+          } else {
+            debugPrint('⚠️ Passenger coordinates are null.');
           }
+
+        } else if (userType == 'Driver' &&
+            userData.containsKey('driver_information')) {
+          final info = userData['driver_information'];
+          final lat = info['latitude'];
+          final lng = info['longitude'];
+
+          if (lat != null && lng != null) {
+            startPosition = LatLng(double.parse(lat.toString()), double.parse(lng.toString()));
+            debugPrint('📍 Loaded start position (Driver): $startPosition');
+          } else {
+            debugPrint('⚠️ Driver coordinates are null.');
+          }
+        } else {
+          debugPrint('⚠️ Unknown or missing userType.');
         }
       }
 
-      // Initialize car position at start position
+      // 3. Initialize car position
       if (startPosition != null) {
         currentCarPosition = startPosition;
+        debugPrint('🚘 Current car position initialized.');
+      } else {
+        debugPrint('❌ startPosition is null — cannot animate.');
       }
 
-      setState(() {
-        _isLoading = false;
-      });
+      // 4. Finish loading
+      setState(() => _isLoading = false);
 
-      // Center map to show both points
+
+      // 5. Center map and animate if both positions are valid
       if (startPosition != null && destinationPosition != null) {
+        debugPrint('🗺️ Centering map and starting animation...');
         _centerMapOnRoute();
-        // Start animation after a short delay
-        Future.delayed(const Duration(milliseconds: 500), () {
-          _startAnimation();
-        });
+        Future.delayed(const Duration(milliseconds: 500), _startAnimation);
+      } else {
+        debugPrint('⚠️ Map will not animate. One or both positions are null.');
       }
+
     } catch (e) {
-      print('Error loading positions: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      debugPrint('❌ Unexpected error in _loadPositions: $e');
+      setState(() => _isLoading = false);
     }
   }
+
+
 
   void _centerMapOnRoute() {
     if (startPosition == null || destinationPosition == null) return;
@@ -205,6 +248,7 @@ class _RoadTripMapState extends State<RoadTripMap> {
 
   @override
   Widget build(BuildContext context) {
+    print('🚨 RoadTripMap build() called');
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: Stack(

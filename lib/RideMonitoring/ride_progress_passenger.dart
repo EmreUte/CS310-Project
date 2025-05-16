@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:math';
+import 'dart:async';
 import '../utils/colors.dart';
 import '../utils/styles.dart';
 import '../maps/road_trip_map.dart';
-import 'dart:async';
-
 
 class RideProgressPassenger extends StatefulWidget {
   @override
@@ -20,57 +18,85 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
   bool paymentSuccess = false;
   bool isLoading = true;
   bool hasCard = false;
+  bool driverEndedRide = false;
 
   String startLocation = "Loading...";
   String endLocation = "Loading...";
   String estimatedTime = "Calculating...";
   String amount = "Calculating...";
 
-  bool driverEndedRide = false;
-
-  Future<void> _checkIfDriverEndedRide() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      driverEndedRide = prefs.getBool('driverEndedRide') ?? false;
-    });
-  }
-
+  String? matchedDriverId;
 
   @override
   void initState() {
     super.initState();
-    _loadTripData();
-    _checkPaymentMethod();
-    _checkIfDriverEndedRide();
+    _init();
+  }
 
-    Timer.periodic(Duration(seconds: 2), (timer) {
-      _checkIfDriverEndedRide();
-      if (driverEndedRide) timer.cancel();
+  Future<void> _init() async {
+    await _findMatchedDriver();
+    await _loadTripData();
+    await _checkPaymentMethod();
+    _pollForDriverEnd();
+  }
+
+  Future<void> _findMatchedDriver() async {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    final sessions = await FirebaseFirestore.instance
+        .collection('ride_sessions')
+        .where('passengerId', isEqualTo: currentUid)
+        .get();
+
+    if (sessions.docs.isNotEmpty) {
+      matchedDriverId = sessions.docs.first.data()['driverId'];
+      print('🎯 [Passenger] matchedDriverId = $matchedDriverId'); // ✅ add this line
+    } else {
+      print('⚠️ [Passenger] No ride_sessions found for current user.');
+    }
+  }
+
+
+  void _pollForDriverEnd() {
+    Timer.periodic(const Duration(seconds: 2), (timer) async {
+      if (matchedDriverId == null) return;
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) return;
+
+      final sessionId = 'session_${currentUser.uid}_$matchedDriverId';
+      final session = await FirebaseFirestore.instance
+          .collection('ride_sessions')
+          .doc(sessionId)
+          .get();
+
+      final data = session.data();
+      if (data?['driverEnded'] == true) {
+        setState(() => driverEndedRide = true);
+        timer.cancel();
+      }
     });
   }
 
   Future<void> _loadTripData() async {
-    setState(() {
-      isLoading = true;
-    });
-
+    setState(() => isLoading = true);
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-
-      final data = userDoc.data();
-      final passengerInfo = data?['passenger_information'] ?? {};
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final passengerInfo = userDoc.data()?['passenger_information'] ?? {};
       final startLat = (passengerInfo['latitude'] as num?)?.toDouble();
       final startLng = (passengerInfo['longitude'] as num?)?.toDouble();
 
-      final prefs = await SharedPreferences.getInstance();
-      final destLat = prefs.getDouble('destination_lat');
-      final destLng = prefs.getDouble('destination_lng');
+      if (matchedDriverId == null) return;
+
+      final sessionId = 'session_${user.uid}_$matchedDriverId';
+      final sessionDoc = await FirebaseFirestore.instance
+          .collection('ride_sessions')
+          .doc(sessionId)
+          .get();
+      final dest = sessionDoc.data()?['destination'];
+      final destLat = dest?['lat'];
+      final destLng = dest?['lng'];
 
       if (startLat != null && startLng != null) {
         startLocation = await _getLocationName(startLat, startLng);
@@ -80,16 +106,13 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
         endLocation = await _getLocationName(destLat, destLng);
 
         if (startLat != null && startLng != null) {
-          final tripDetails = _calculateTripDetails(
-              startLat, startLng, destLat, destLng);
+          final tripDetails = _calculateTripDetails(startLat, startLng, destLat, destLng);
           estimatedTime = tripDetails['time'] ?? "Unknown";
           amount = tripDetails['fare'] ?? "Unknown";
         }
       }
 
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     } catch (e) {
       print('Error loading trip data: $e');
       setState(() => isLoading = false);
@@ -120,14 +143,13 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
       final response = await http.get(
         Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng'),
         headers: {
-          'User-Agent': 'MyRideApp/1.0 (hcancaglar99@gmail.com)',  // use a valid email or domain
+          'User-Agent': 'MyRideApp/1.0 (hcancaglar99@gmail.com)',
         },
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final displayName = data['display_name'];
-        return displayName ?? 'Unknown Location';
+        return data['display_name'] ?? 'Unknown Location';
       }
       return 'Unknown Location';
     } catch (e) {
@@ -136,19 +158,13 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
     }
   }
 
-
-
-  Map<String, String> _calculateTripDetails(
-      double startLat, double startLng, double endLat, double endLng) {
+  Map<String, String> _calculateTripDetails(double startLat, double startLng, double endLat, double endLng) {
     const R = 6371.0;
     final dLat = _toRadians(endLat - startLat);
     final dLon = _toRadians(endLng - startLng);
 
     final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_toRadians(startLat)) *
-            cos(_toRadians(endLat)) *
-            sin(dLon / 2) *
-            sin(dLon / 2);
+        cos(_toRadians(startLat)) * cos(_toRadians(endLat)) * sin(dLon / 2) * sin(dLon / 2);
     final c = 2 * atan2(sqrt(a), sqrt(1 - a));
     final distance = R * c;
 
@@ -171,8 +187,7 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
         context: context,
         builder: (_) => AlertDialog(
           title: const Text("No Payment Method"),
-          content:
-          const Text("Please add a payment method to your wallet."),
+          content: const Text("Please add a payment method to your wallet."),
           actions: [
             TextButton(
               onPressed: () {
@@ -196,8 +211,7 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
         content: const Text("Your ride has been paid successfully."),
         actions: [
           TextButton(
-            onPressed: () => Navigator.popUntil(
-                context, ModalRoute.withName('/passenger_profile')),
+            onPressed: () => Navigator.popUntil(context, ModalRoute.withName('/passenger_profile')),
             child: const Text("OK"),
           )
         ],
@@ -207,20 +221,24 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
 
   @override
   Widget build(BuildContext context) {
+    print('🛠 RideProgressPassenger build triggered, matchedDriverId = $matchedDriverId');
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.appBarBackground,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left_outlined,
-              size: 33, color: AppColors.primaryText),
-          onPressed: () => Navigator.popUntil(
-              context, ModalRoute.withName('/passenger_profile')),
+          icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
+          onPressed: () => Navigator.popUntil(context, ModalRoute.withName('/passenger_profile')),
         ),
         title: Text("Ride Progress", style: kAppBarText),
       ),
       body: Column(
         children: [
-          SizedBox(height: 300, child: const RoadTripMap()),
+          SizedBox(
+            height: 300,
+            child: matchedDriverId == null
+                ? const Center(child: CircularProgressIndicator())
+                : RoadTripMap(passengerId: FirebaseAuth.instance.currentUser!.uid, driverId: matchedDriverId!),
+          ),
           const SizedBox(height: 12),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -239,39 +257,32 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
                     const Icon(Icons.local_taxi),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(startLocation,
-                          style: kFillerText,
-                          overflow: TextOverflow.ellipsis),
+                      child: Text(startLocation, style: kFillerText, overflow: TextOverflow.ellipsis),
                     ),
                     const SizedBox(width: 8),
                     const Icon(Icons.more_horiz),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(endLocation,
-                          style: kFillerText,
-                          overflow: TextOverflow.ellipsis),
+                      child: Text(endLocation, style: kFillerText, overflow: TextOverflow.ellipsis),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Text("Amount: $amount", style: kFillerText),
                 const SizedBox(height: 4),
-                Text("Estimated Time Left: $estimatedTime",
-                    style: kFillerTextSmall),
+                Text("Estimated Time Left: $estimatedTime", style: kFillerTextSmall),
               ],
             ),
           ),
           const Spacer(),
           if (driverEndedRide && !paymentSuccess)
             Padding(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.buttonBackground,
                   minimumSize: const Size.fromHeight(50),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: handlePayment,
                 child: Text("Make Payment", style: kButtonText),
