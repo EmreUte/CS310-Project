@@ -157,7 +157,24 @@ class _PassengerProfileState extends State<PassengerProfile> {
       height: 56,
       child: ElevatedButton(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+          if (label == "Ride History") {
+            final user = Provider.of<MyUser?>(context, listen: false);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => StreamProvider<List<RideRecord>?>.value(
+                  value: DatabaseService(uid: user!.uid).rideHistory,
+                  initialData: null,
+                  child: page,
+                ),
+              ),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => page),
+            );
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.buttonBackground,

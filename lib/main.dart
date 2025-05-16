@@ -22,7 +22,7 @@ import 'preferences/driver_preferences.dart';
 import 'RideMonitoring/ride_progress_passenger.dart';
 import 'RideMonitoring/ride_progress_driver.dart';
 import 'digital_payments/card_list.dart';
-
+import 'Settings/settings_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -46,37 +46,39 @@ class MyApp extends StatelessWidget {
         // Once complete, show your application
         if (snapshot.connectionState == ConnectionState.done) {
           return StreamProvider<MyUser?>.value(
-              value: AuthService().user,
-              initialData: null,
-              child: MaterialApp(
-                  title: 'MyRide',
-                  debugShowCheckedModeBanner: false,
-                  initialRoute: '/',
-                  routes: {
-                    '/': (context) => const Wrapper(),
-                    '/add_new_payment': (context) => AddNewCard(),
-                    '/driver_information': (context) => DriverInformationScreen(),
-                    '/passenger_profile': (context) => PassengerProfile(),
-                    '/driver_profile': (context) => DriverProfile(),
-                    '/passenger_information': (context) => PassengerInformationScreen(),
-                    '/driver_preferences': (context) => DriverPreferencesScreen(),
-                    '/passenger_preferences': (context) => PassengerPreferencesScreen(),
-                    '/finding_your_ride': (context) => FindingRideScreen(),
-                    '/help_page': (context) => HelpScreen(),
-                    '/faq_page': (context) => FaqScreen(),
-                    '/ride_progress_passenger':(context)=> RideProgressPassenger(),
-                    '/ride_progress_driver':(context)=> RideProgressDriver(),
-                    '/card_list': (context) => CardList(),
-                  },
-                  theme: ThemeData.light().copyWith(
-                    appBarTheme: AppBarTheme(
-                      backgroundColor: AppColors.appBarBackground,
-                      elevation: 0.0,
-                      centerTitle: true,
-                    ),
-                    scaffoldBackgroundColor: Colors.white,
-                  ),
+            value: AuthService().user,
+            initialData: null,
+            child: MaterialApp(
+              title: 'MyRide',
+              debugShowCheckedModeBanner: false,
+              initialRoute: '/',
+              routes: {
+                '/': (context) => const Wrapper(),
+                '/add_new_payment': (context) => AddNewCard(),
+                '/driver_information': (context) => DriverInformationScreen(),
+                '/passenger_profile': (context) => PassengerProfile(),
+                '/driver_profile': (context) => DriverProfile(),
+                '/passenger_information': (context) => PassengerInformationScreen(),
+                '/driver_preferences': (context) => DriverPreferencesScreen(),
+                '/passenger_preferences': (context) => PassengerPreferencesScreen(),
+                '/finding_your_ride': (context) => FindingRideScreen(),
+                '/help_page': (context) => HelpScreen(),
+                '/faq_page': (context) => FaqScreen(),
+                '/settings': (context) => SettingsPage(),
+                '/ride_progress_passenger':(context)=> RideProgressPassenger(),
+                '/ride_progress_driver':(context)=> RideProgressDriver(),
+                '/card_list': (context) => CardList(),
+
+              },
+              theme: ThemeData.light().copyWith(
+                appBarTheme: AppBarTheme(
+                  backgroundColor: AppColors.appBarBackground,
+                  elevation: 0.0,
+                  centerTitle: true,
+                ),
+                scaffoldBackgroundColor: Colors.white,
               ),
+            ),
           );
         }
 

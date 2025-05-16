@@ -95,6 +95,30 @@ class DatabaseService {
         .map(_cardListFromSnapshot);
   }
 
+  Future addRideRecord(RideRecord record) async {
+    return await userCollection.doc(uid).collection('ride_history').add(record.toMap());
+  }
+
+  Future updateRideRating(String rideId, int rating) async {
+    return await userCollection.doc(uid).collection('ride_history').doc(rideId).update({
+      'rating': rating,
+    });
+  }
+
+  Future removeRideRecord(String rideId) async {
+    return await userCollection.doc(uid).collection('ride_history').doc(rideId).delete();
+  }
+
+  List<RideRecord> _rideListFromSnapshot(QuerySnapshot snapshot) {
+    return snapshot.docs.map((doc) {
+      return RideRecord.fromDocument(doc);
+    }).toList();
+  }
+
+  Stream<List<RideRecord>> get rideHistory {
+    return userCollection.doc(uid).collection('ride_history').snapshots().map(_rideListFromSnapshot);
+  }
+
   UserModel? _userDataFromSnapshot(DocumentSnapshot snapshot) {
     return UserModel(
         uid: uid,
