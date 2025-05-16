@@ -1,6 +1,5 @@
 import 'package:cs310_project/digital_payments/components/credit_card.dart';
 import 'package:cs310_project/services/database.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -68,7 +67,6 @@ class _CardListState extends State<CardList> {
                       userdata.plateNumber,
                       userdata.userType,
                       userdata.cardCount - 1,
-                      userdata.cardID
                   );
                 }
               )

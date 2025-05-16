@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../utils/colors.dart';
@@ -13,7 +14,6 @@ class CreditCard {
   bool type; // true for Mastercard, false for Visa
 
   Map<String, dynamic> toMap() => {
-    'id': id,
     'name': name,
     'number': number,
     'month': month,
@@ -23,6 +23,17 @@ class CreditCard {
 
   CreditCard({required this.id, required this.name, required this.number,
               required this.month, required this.year, required this.type});
+
+  factory CreditCard.fromDocument(DocumentSnapshot doc) {
+    return CreditCard(
+      id: doc.id,
+      name: doc['name'] ?? '',
+      number: doc['number'] ?? '',
+      month: doc['month'] ?? '',
+      year: doc['year'] ?? '',
+      type: doc['type'] ?? true,
+    );
+  }
 }
 
 class CreditCardBlock extends StatelessWidget {

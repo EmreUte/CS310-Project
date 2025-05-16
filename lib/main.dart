@@ -19,7 +19,8 @@ import 'package:cs310_project/utils/colors.dart';
 import 'RideMonitoring/finding_your_ride.dart';
 import 'preferences/passenger_preferences.dart';
 import 'preferences/driver_preferences.dart';
-import '../Settings/settings_page.dart';
+
+import 'Settings/settings_page.dart';
 
 
 void main() {
@@ -49,7 +50,7 @@ class MyApp extends StatelessWidget {
             child: MaterialApp(
               title: 'MyRide',
               debugShowCheckedModeBanner: false,
-              initialRoute: '/passenger_preferences',
+              initialRoute: '/',
               routes: {
                 '/': (context) => const Wrapper(),
                 '/add_new_payment': (context) => AddNewCard(),

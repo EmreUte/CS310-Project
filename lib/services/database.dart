@@ -38,7 +38,6 @@ class DatabaseService {
     String plateNumber,
     String userType,
     int cardCount,
-    int cardID,
   ) async {
       return await userCollection.doc(uid).set({
         'name': name,
@@ -47,8 +46,16 @@ class DatabaseService {
         'plateNumber': plateNumber,
         'userType': userType,
         'cardCount': cardCount,
-        'cardID': cardID,
       });
+  }
+
+  Future incrementCardCount(
+      String uid,
+      int cardCount
+  ) async {
+    return userCollection.doc(uid).update({
+       'cardCount': cardCount + 1,
+    });
   }
 
   // gift list from snapshot
@@ -56,8 +63,7 @@ class DatabaseService {
     return await userCollection
         .doc(uid)
         .collection('payment_methods')
-        .doc(card.id)
-        .set(card.toMap());
+        .add(card.toMap());
   }
   Future removeCreditCard(String cardID) async {
       return await userCollection
@@ -68,14 +74,7 @@ class DatabaseService {
   }
   List<CreditCard> _cardListFromSnapshot(QuerySnapshot snapshot) {
     return snapshot.docs.map((doc) {
-      return CreditCard(
-        id: doc['id'],
-        name: doc['name'],
-        number: doc['number'],
-        month: doc['month'],
-        year: doc['year'],
-        type: doc['type'],
-      );
+      return CreditCard.fromDocument(doc);
     }).toList();
   }
   // get cards stream
@@ -87,6 +86,30 @@ class DatabaseService {
         .map(_cardListFromSnapshot);
   }
 
+  Future addRideRecord(RideRecord record) async {
+    return await userCollection.doc(uid).collection('ride_history').add(record.toMap());
+  }
+
+  Future updateRideRating(String rideId, int rating) async {
+    return await userCollection.doc(uid).collection('ride_history').doc(rideId).update({
+      'rating': rating,
+    });
+  }
+
+  Future removeRideRecord(String rideId) async {
+    return await userCollection.doc(uid).collection('ride_history').doc(rideId).delete();
+  }
+
+  List<RideRecord> _rideListFromSnapshot(QuerySnapshot snapshot) {
+    return snapshot.docs.map((doc) {
+      return RideRecord.fromDocument(doc);
+    }).toList();
+  }
+
+  Stream<List<RideRecord>> get rideHistory {
+    return userCollection.doc(uid).collection('ride_history').snapshots().map(_rideListFromSnapshot);
+  }
+
   UserModel? _userDataFromSnapshot(DocumentSnapshot snapshot) {
     return UserModel(
         uid: uid,
@@ -96,10 +119,8 @@ class DatabaseService {
         plateNumber: snapshot['plateNumber'],
         userType: snapshot['userType'],
         cardCount: snapshot['cardCount'],
-        cardID: snapshot['cardID'],
     );
   }
-
   // get user doc stream
   Stream<UserModel?> get userData {
     return userCollection.doc(uid).snapshots().map(_userDataFromSnapshot);

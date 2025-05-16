@@ -261,7 +261,6 @@ class _DriverInformationScreen extends State<DriverInformationScreen> {
                 _plateController.text,
                 userData.userType,
                 userData.cardCount,
-                userData.cardID,
               );
             }
 
