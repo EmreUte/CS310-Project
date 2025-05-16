@@ -64,7 +64,6 @@ class _RoadTripMapState extends State<RoadTripMap> {
     setState(() {
       _isLoading = true;
     });
-    throw Exception('🔥 TEST CRASH: _loadPositions is being executed');
 
     debugPrint('🟢 Entered _loadPositions');
 
