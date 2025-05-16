@@ -50,29 +50,28 @@ class _AvailableDriversState extends State<AvailableDrivers> {
     }
 
     try {
-      final userDoc = await FirebaseFirestore.instance
+      FirebaseFirestore.instance
           .collection('users')
           .doc(currentUser.uid)
-          .get();
-
-      if (userDoc.exists && userDoc.data() != null) {
-        final userData = userDoc.data()!;
-        if (userData.containsKey('passenger_information')) {
-          final passengerInfo = userData['passenger_information'];
-          if (passengerInfo['latitude'] != null && passengerInfo['longitude'] != null) {
-            final lat = passengerInfo['latitude'];
-            final lng = passengerInfo['longitude'];
-            setState(() {
-              passengerPosition = LatLng(double.parse(lat.toString()), double.parse(lng.toString()));
-            });
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (passengerPosition != null) {
-                _mapController.move(passengerPosition!, 14);
-              }
-            });
+          .snapshots()
+          .listen((doc) {
+        if (doc.exists && doc.data() != null) {
+          final userData = doc.data()!;
+          if (userData.containsKey('passenger_information')) {
+            final info = userData['passenger_information'];
+            if (info['latitude'] != null && info['longitude'] != null) {
+              final lat = double.parse(info['latitude'].toString());
+              final lng = double.parse(info['longitude'].toString());
+              setState(() {
+                passengerPosition = LatLng(lat, lng);
+                _isLoading = false;
+              });
+              _mapController.move(LatLng(lat, lng), 14);
+            }
           }
         }
-      }
+      });
+
 
       _driversSubscription = FirebaseFirestore.instance
           .collection('users')

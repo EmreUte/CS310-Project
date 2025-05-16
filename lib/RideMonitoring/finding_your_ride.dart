@@ -21,7 +21,7 @@ class FindingRideScreen extends StatefulWidget {
 
 class _FindingRideScreenState extends State<FindingRideScreen> {
   int _currentStep = 0;
-  late Timer _timer;
+  Timer? _timer;
   bool _matchFound = false;
   String _userType = '';
 
@@ -124,12 +124,11 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
 
 
   void _showNoMatchFoundDialog() {
-    // Cancel the timer if it's running
-    if (_timer.isActive) {
-      _timer.cancel();
+    // Only cancel if _timer has been initialized
+    if (mounted && (_timer?.isActive == true)) {
+      _timer?.cancel();
     }
 
-    // Show dialog after a short delay to ensure the context is available
     Future.delayed(Duration.zero, () {
       if (context.mounted) {
         showDialog(
@@ -141,8 +140,8 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(); // Close dialog
-                  Navigator.of(context).pop(); // Return to profile page
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
                 },
                 child: const Text('OK'),
               ),
@@ -153,6 +152,7 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
     });
   }
 
+
 // Modify _startProgressAnimation to navigate to ride progress when complete
   void _startProgressAnimation() {
     _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
@@ -161,7 +161,7 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
           _currentStep++;
         });
       } else {
-        _timer.cancel(); // Stop when finished
+        _timer?.cancel(); // Stop when finished
 
         // Navigate to the appropriate ride progress screen
         if (_userType == 'Driver') {
@@ -177,7 +177,7 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -253,7 +253,7 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
             ),
                       onPressed: () {
                       // Cancel logic & return to the previous screen
-                      _timer.cancel(); // Stop animation if user cancels
+                      _timer?.cancel(); // Stop animation if user cancels
                       Navigator.pop(context);
                     },
                 child: Center(

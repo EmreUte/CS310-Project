@@ -7,6 +7,7 @@ import 'dart:math';
 import '../utils/colors.dart';
 import '../utils/styles.dart';
 import '../maps/road_trip_map.dart';
+import 'dart:async';
 
 class RideProgressDriver extends StatefulWidget {
   @override
@@ -21,6 +22,7 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
   String estimatedTime = "Calculating...";
   String amount = "Calculating...";
   String? matchedPassengerId;
+  Timer? _paymentTimer;
 
   @override
   void initState() {
@@ -28,10 +30,49 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
     _initialize();
   }
 
+  @override
+  void dispose() {
+    _paymentTimer?.cancel();
+    super.dispose();
+  }
+
+  void _pollForPayment() {
+    _paymentTimer = Timer.periodic(Duration(seconds: 2), (timer) async {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null || matchedPassengerId == null) return;
+
+      final sessionId = 'session_${matchedPassengerId}_${currentUser.uid}';
+      final sessionDoc = await FirebaseFirestore.instance
+          .collection('ride_sessions')
+          .doc(sessionId)
+          .get();
+
+      final data = sessionDoc.data();
+      if (data?['paymentStatus'] == 'completed') {
+        timer.cancel();
+        if (!mounted) return;
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text("Payment Received"),
+            content: const Text("Passenger has completed the payment."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.popUntil(context, ModalRoute.withName('/')),
+                child: const Text("OK"),
+              )
+            ],
+          ),
+        );
+      }
+    });
+  }
+
   Future<void> _initialize() async {
     matchedPassengerId = await _getMatchedPassengerId();
-    print('🎯 [Driver] matchedPassengerId = $matchedPassengerId');
+    print('🎯 [Driver] matchedPassengerId = \$matchedPassengerId');
     await _loadTripData();
+    _pollForPayment();
   }
 
   Future<String?> _getMatchedPassengerId() async {
@@ -71,7 +112,7 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
 
       final sessionDoc = await FirebaseFirestore.instance
           .collection('ride_sessions')
-          .doc('session_${matchedPassengerId}_${currentUser.uid}')
+          .doc('session_\${matchedPassengerId}_\${currentUser.uid}')
           .get();
 
       final dest = sessionDoc.data()?['destination'];
@@ -93,7 +134,7 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
         isLoading = false;
       });
     } catch (e) {
-      print('Error loading trip data: $e');
+      print('Error loading trip data: \$e');
       setState(() {
         isLoading = false;
       });
@@ -103,7 +144,7 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
   Future<String> _getLocationName(double lat, double lng) async {
     try {
       final response = await http.get(
-        Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng'),
+        Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=\$lat&lon=\$lng'),
         headers: {'User-Agent': 'MyRideApp/1.0 (hcancaglar99@gmail.com)'},
       );
       if (response.statusCode == 200) {
@@ -112,7 +153,7 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
       }
       return 'Unknown Location';
     } catch (e) {
-      print('Reverse geocoding failed: $e');
+      print('Reverse geocoding failed: \$e');
       return 'Unknown Location';
     }
   }
@@ -129,39 +170,54 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
     final baseFare = 50.0;
     final distanceFare = distance * 15.0;
     final totalFare = baseFare + distanceFare;
-    return {'time': '$timeInMinutes minutes', 'fare': '${totalFare.round()} ₺'};
+    return {'time': '\$timeInMinutes minutes', 'fare': '\${totalFare.round()} ₺'};
   }
 
   double _toRadians(double degree) => degree * (pi / 180);
 
   void handleEndRide() async {
-    setState(() => rideEnded = true);
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null || matchedPassengerId == null) return;
-    await FirebaseFirestore.instance
-        .collection('ride_sessions')
-        .doc('session_${matchedPassengerId}_${currentUser.uid}')
-        .update({'driverEnded': true});
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Ride Ended'),
-        content: Text('You have successfully ended the ride. Waiting for passenger payment.'),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('OK'))],
-      ),
-    );
+
+    final sessionId = 'session_${matchedPassengerId}_${currentUser.uid}';
+    final sessionRef = FirebaseFirestore.instance.collection('ride_sessions').doc(sessionId);
+
+    try {
+      await sessionRef.set({
+        'driverEnded': true,
+      }, SetOptions(merge: true)); // ✅ ensures other fields are preserved
+
+      setState(() => rideEnded = true);
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Ride Ended'),
+          content: Text('You have successfully ended the ride. Waiting for passenger payment.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK'),
+            )
+          ],
+        ),
+      );
+    } catch (e) {
+      print('❌ Failed to mark ride ended: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error ending ride. Please try again.')),
+      );
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
-    print('🛠 RideProgressDriver build triggered, matchedPassengerId = $matchedPassengerId');
+    print('🛠 RideProgressDriver build triggered, matchedPassengerId = \$matchedPassengerId');
     final driverId = FirebaseAuth.instance.currentUser!.uid;
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false,
         title: Text("Ride Progress", style: kAppBarText),
       ),
       body: Column(
@@ -197,9 +253,9 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
                   ],
                 ),
                 SizedBox(height: 8),
-                Text("Amount: $amount", style: kFillerText),
+                Text("Amount: \$amount", style: kFillerText),
                 SizedBox(height: 4),
-                Text("Estimated Time Left: $estimatedTime", style: kFillerTextSmall),
+                Text("Estimated Time Left: \$estimatedTime", style: kFillerTextSmall),
               ],
             ),
           ),

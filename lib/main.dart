@@ -21,6 +21,7 @@ import 'preferences/passenger_preferences.dart';
 import 'preferences/driver_preferences.dart';
 import 'RideMonitoring/ride_progress_passenger.dart';
 import 'RideMonitoring/ride_progress_driver.dart';
+import 'digital_payments/card_list.dart';
 
 
 void main() {
@@ -65,7 +66,7 @@ class MyApp extends StatelessWidget {
                     '/faq_page': (context) => FaqScreen(),
                     '/ride_progress_passenger':(context)=> RideProgressPassenger(),
                     '/ride_progress_driver':(context)=> RideProgressDriver(),
-
+                    '/card_list': (context) => CardList(),
                   },
                   theme: ThemeData.light().copyWith(
                     appBarTheme: AppBarTheme(

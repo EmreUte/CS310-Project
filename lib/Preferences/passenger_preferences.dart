@@ -56,6 +56,8 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
       Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=$query&countrycodes=tr'), // Turkey-only results
       //Stadia Maps
       //Uri.parse("https://api.stadiamaps.com/geocoding/v1/search?text=$query&api_key=ca885b1b-d8dd-44b4-9036-d78e3405996c&countrycodes=tr"),
+      headers: {'User-Agent': 'MyRideApp/1.0 (hcancaglar99@gmail.com)'},
+
 
     );
 
