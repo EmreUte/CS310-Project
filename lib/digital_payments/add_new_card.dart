@@ -259,7 +259,7 @@ class _AddNewCardState extends State<AddNewCard> {
                         _formKey.currentState!.save();
                         dbService.addCreditCard(
                             CreditCard (
-                                id: userdata!.cardID.toString(),
+                                id: "0",
                                 name: cardName,
                                 number: cardNumber,
                                 month: cardMonth,
@@ -267,15 +267,7 @@ class _AddNewCardState extends State<AddNewCard> {
                                 type: true
                             )
                         );
-                        dbService.updateUserData(
-                          userdata.name,
-                          userdata.email,
-                          userdata.phone,
-                          userdata.plateNumber,
-                          userdata.userType,
-                          userdata.cardCount + 1,
-                          userdata.cardID + 1,
-                        );
+                        dbService.incrementCardCount(userdata!.uid, userdata.cardCount);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Card successfuly added')),
                         );

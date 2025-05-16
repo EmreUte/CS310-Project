@@ -17,7 +17,6 @@ class UserModel {
   final String plateNumber;
 
   final int cardCount;
-  final int cardID;
 
   UserModel({
     required this.uid,
@@ -27,7 +26,6 @@ class UserModel {
     required this.plateNumber,
     required this.userType,
     required this.cardCount,
-    required this.cardID,
   });
 }
 
