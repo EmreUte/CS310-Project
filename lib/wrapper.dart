@@ -16,13 +16,14 @@ class Wrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     final user = Provider.of<MyUser?>(context);
     if (user == null) {
       // Return Home or Authenticate
       return WelcomePage();
     }
     else {
-      final dbService = DatabaseService(uid: user.uid);
+      final dbService = DatabaseService(uid: user!.uid);
       return StreamProvider<UserModel?>.value(
         value: dbService.userData,
         initialData: null,
