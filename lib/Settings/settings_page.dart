@@ -1,6 +1,7 @@
 import 'package:cs310_project/utils/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../screens/welcome_page.dart';
 import '../services/auth.dart';
 import '../utils/colors.dart';
 import '../services/database.dart';
@@ -64,7 +65,11 @@ class SettingsPageState extends State<SettingsPage> {
 
 
           _settingsTile('Request account info', Icon(Icons.play_arrow)),
-          _settingsTile('Delete account', Icon(Icons.play_arrow)),
+          _settingsTile(
+            'Delete account',
+            Icon(Icons.play_arrow),
+            () => _showDeleteAccountDialog(context),
+          ),
 
           // Notifications
           _sectionHeader('Notifications'),
@@ -187,5 +192,83 @@ class SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
+
+  void _showDeleteAccountDialog(BuildContext context) async {
+    final myUser = Provider.of<MyUser?>(context, listen: false);
+    if (myUser == null) return;
+
+    String password = '';
+    String email = '';
+    final userDoc = await DatabaseService(uid: myUser.uid).userCollection.doc(myUser.uid).get();
+    if (userDoc.exists) {
+      email = userDoc['email'] ?? '';
+    }
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('Delete Account'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently removed.',
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Enter your password to confirm',
+                ),
+                onChanged: (val) => password = val,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Close the confirmation dialog
+                Navigator.of(dialogContext).pop();
+                
+                // Show a simple loading dialog
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (ctx) => PopScope(
+                    canPop: false,  // This prevents the dialog from being dismissed
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                );
+                
+                try {
+                  // Perform account deletion with navigation handled by the auth service
+                  await AuthService().reauthenticateAndDeleteAccount(
+                    uid: myUser.uid,
+                    email: email,
+                    password: password,
+                    context: context, // Pass context for navigation
+                  );
+                } catch (e) {
+                  // If we reach here, something went wrong
+                  Navigator.of(context, rootNavigator: true).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete account: ${e.toString()}')),
+                  );
+                }
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 }
 

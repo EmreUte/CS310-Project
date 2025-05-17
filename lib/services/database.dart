@@ -52,6 +52,15 @@ class DatabaseService {
       });
   }
 
+  Future incrementCardCount(
+      String uid,
+      int cardCount
+  ) async {
+    return userCollection.doc(uid).update({
+       'cardCount': cardCount + 1,
+    });
+  }
+
   Future setOnlineStatus(bool status) async {
     return await userCollection.doc(uid).set({
       'isOnline': status,
@@ -64,8 +73,7 @@ class DatabaseService {
     return await userCollection
         .doc(uid)
         .collection('payment_methods')
-        .doc(card.id)
-        .set(card.toMap());
+        .add(card.toMap());
   }
   Future removeCreditCard(String cardID) async {
       return await userCollection
@@ -76,14 +84,7 @@ class DatabaseService {
   }
   List<CreditCard> _cardListFromSnapshot(QuerySnapshot snapshot) {
     return snapshot.docs.map((doc) {
-      return CreditCard(
-        id: doc['id'],
-        name: doc['name'],
-        number: doc['number'],
-        month: doc['month'],
-        year: doc['year'],
-        type: doc['type'],
-      );
+      return CreditCard.fromDocument(doc);
     }).toList();
   }
   // get cards stream
@@ -120,6 +121,7 @@ class DatabaseService {
   }
 
   UserModel? _userDataFromSnapshot(DocumentSnapshot snapshot) {
+    if (!snapshot.exists) return null;
     return UserModel(
         uid: uid,
         name: snapshot['name'],
@@ -128,13 +130,23 @@ class DatabaseService {
         plateNumber: snapshot['plateNumber'],
         userType: snapshot['userType'],
         cardCount: snapshot['cardCount'],
-        cardID: snapshot['cardID'],
     );
   }
-
-
   // get user doc stream
   Stream<UserModel?> get userData {
     return userCollection.doc(uid).snapshots().map(_userDataFromSnapshot);
   }
+
+  // Delete user doc and all emails with this uid
+  Future<void> deleteUserAndEmails() async {
+    // Delete user document
+    await userCollection.doc(uid).delete();
+
+    // Find and delete all emails with this uid
+    final emails = await msgCollection.where('uid', isEqualTo: uid).get();
+    for (var doc in emails.docs) {
+      await msgCollection.doc(doc.id).delete();
+    }
+  }
 }
+

@@ -65,10 +65,10 @@ class MyApp extends StatelessWidget {
                 '/help_page': (context) => HelpScreen(),
                 '/faq_page': (context) => FaqScreen(),
                 '/settings': (context) => SettingsPage(),
+                'welcome': (context) => WelcomePage(),
                 '/ride_progress_passenger':(context)=> RideProgressPassenger(),
                 '/ride_progress_driver':(context)=> RideProgressDriver(),
                 '/card_list': (context) => CardList(),
-
               },
               theme: ThemeData.light().copyWith(
                 appBarTheme: AppBarTheme(
