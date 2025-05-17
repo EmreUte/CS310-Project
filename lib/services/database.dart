@@ -37,7 +37,6 @@ class DatabaseService {
     String phone,
     String plateNumber,
     String userType,
-    int cardCount,
     int cardID,
   ) async {
       return await userCollection.doc(uid).set({
@@ -46,7 +45,6 @@ class DatabaseService {
         'phone': phone,
         'plateNumber': plateNumber,
         'userType': userType,
-        'cardCount': cardCount,
         'cardID': cardID,
         'isOnline': true,
       });

@@ -17,10 +17,6 @@ class RideProgressDriver extends StatefulWidget {
 class _RideProgressDriverState extends State<RideProgressDriver> {
   bool rideEnded = false;
   bool isLoading = true;
-  String startLocation = "Loading...";
-  String endLocation = "Loading...";
-  String estimatedTime = "Calculating...";
-  String amount = "Calculating...";
   String? matchedPassengerId;
   Timer? _paymentTimer;
 
@@ -36,21 +32,23 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
     super.dispose();
   }
 
-  void _pollForPayment() {
-    _paymentTimer = Timer.periodic(Duration(seconds: 2), (timer) async {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null || matchedPassengerId == null) return;
+  void _listenForPaymentStatus() {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null || matchedPassengerId == null) return;
 
-      final sessionId = 'session_${matchedPassengerId}_${currentUser.uid}';
-      final sessionDoc = await FirebaseFirestore.instance
-          .collection('ride_sessions')
-          .doc(sessionId)
-          .get();
+    final sessionId = 'session_${matchedPassengerId}_${currentUser.uid}';
+    FirebaseFirestore.instance
+        .collection('ride_sessions')
+        .doc(sessionId)
+        .snapshots()
+        .listen((snapshot) {
+      final data = snapshot.data();
+      if (data == null) return;
 
-      final data = sessionDoc.data();
-      if (data?['paymentStatus'] == 'completed') {
-        timer.cancel();
+      final paymentStatus = data['paymentStatus'];
+      if (paymentStatus == 'completed') {
         if (!mounted) return;
+
         showDialog(
           context: context,
           builder: (_) => AlertDialog(
@@ -70,110 +68,25 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
 
   Future<void> _initialize() async {
     matchedPassengerId = await _getMatchedPassengerId();
-    print('🎯 [Driver] matchedPassengerId = \$matchedPassengerId');
-    await _loadTripData();
-    _pollForPayment();
+    _listenForPaymentStatus();
   }
 
   Future<String?> _getMatchedPassengerId() async {
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUid == null) return null;
+
     final sessions = await FirebaseFirestore.instance
         .collection('ride_sessions')
         .where('driverId', isEqualTo: currentUid)
         .get();
 
     if (sessions.docs.isNotEmpty) {
-      return sessions.docs.first.data()['passengerId'];
-    }
-    return null;
-  }
-
-  Future<void> _loadTripData() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null || matchedPassengerId == null) return;
-
-      final driverDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(currentUser.uid)
-          .get();
-
-      if (!driverDoc.exists) return;
-
-      final driverData = driverDoc.data()!;
-      final driverInfo = driverData['driver_information'] ?? {};
-
-      double? startLat = driverInfo['latitude']?.toDouble();
-      double? startLng = driverInfo['longitude']?.toDouble();
-
-      final sessionDoc = await FirebaseFirestore.instance
-          .collection('ride_sessions')
-          .doc('session_\${matchedPassengerId}_\${currentUser.uid}')
-          .get();
-
-      final dest = sessionDoc.data()?['destination'];
-      final destLat = dest?['lat'];
-      final destLng = dest?['lng'];
-
-      if (startLat != null && startLng != null) {
-        startLocation = await _getLocationName(startLat, startLng);
-      }
-
-      if (destLat != null && destLng != null) {
-        endLocation = await _getLocationName(destLat, destLng);
-        final tripDetails = _calculateTripDetails(startLat!, startLng!, destLat, destLng);
-        estimatedTime = tripDetails['time'] ?? "Unknown";
-        amount = tripDetails['fare'] ?? "Unknown";
-      }
-
-      setState(() {
-        isLoading = false;
-      });
-    } catch (e) {
-      print('Error loading trip data: \$e');
-      setState(() {
-        isLoading = false;
-      });
+      final passengerId = sessions.docs.first.data()['passengerId'];
+      return passengerId;
+    } else {
+      return null;
     }
   }
-
-  Future<String> _getLocationName(double lat, double lng) async {
-    try {
-      final response = await http.get(
-        Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=\$lat&lon=\$lng'),
-        headers: {'User-Agent': 'MyRideApp/1.0 (hcancaglar99@gmail.com)'},
-      );
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return data['display_name'] ?? 'Unknown Location';
-      }
-      return 'Unknown Location';
-    } catch (e) {
-      print('Reverse geocoding failed: \$e');
-      return 'Unknown Location';
-    }
-  }
-
-  Map<String, String> _calculateTripDetails(double startLat, double startLng, double endLat, double endLng) {
-    const R = 6371.0;
-    final dLat = _toRadians(endLat - startLat);
-    final dLon = _toRadians(endLng - startLng);
-    final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_toRadians(startLat)) * cos(_toRadians(endLat)) * sin(dLon / 2) * sin(dLon / 2);
-    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    final distance = R * c;
-    final timeInMinutes = (distance / 30 * 60).round();
-    final baseFare = 50.0;
-    final distanceFare = distance * 15.0;
-    final totalFare = baseFare + distanceFare;
-    return {'time': '\$timeInMinutes minutes', 'fare': '\${totalFare.round()} ₺'};
-  }
-
-  double _toRadians(double degree) => degree * (pi / 180);
 
   void handleEndRide() async {
     final currentUser = FirebaseAuth.instance.currentUser;
@@ -185,7 +98,7 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
     try {
       await sessionRef.set({
         'driverEnded': true,
-      }, SetOptions(merge: true)); // ✅ ensures other fields are preserved
+      }, SetOptions(merge: true));
 
       setState(() => rideEnded = true);
 
@@ -203,17 +116,14 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
         ),
       );
     } catch (e) {
-      print('❌ Failed to mark ride ended: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error ending ride. Please try again.')),
       );
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    print('🛠 RideProgressDriver build triggered, matchedPassengerId = \$matchedPassengerId');
     final driverId = FirebaseAuth.instance.currentUser!.uid;
     return Scaffold(
       appBar: AppBar(
@@ -227,37 +137,6 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
             child: matchedPassengerId == null
                 ? Center(child: CircularProgressIndicator())
                 : RoadTripMap(passengerId: matchedPassengerId!, driverId: driverId),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.fillBox,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: isLoading
-                ? Center(child: CircularProgressIndicator())
-                : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.local_taxi),
-                    SizedBox(width: 8),
-                    Expanded(child: Text(startLocation, style: kFillerText, overflow: TextOverflow.ellipsis)),
-                    SizedBox(width: 8),
-                    Icon(Icons.more_horiz),
-                    SizedBox(width: 8),
-                    Expanded(child: Text(endLocation, style: kFillerText, overflow: TextOverflow.ellipsis)),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Text("Amount: \$amount", style: kFillerText),
-                SizedBox(height: 4),
-                Text("Estimated Time Left: \$estimatedTime", style: kFillerTextSmall),
-              ],
-            ),
           ),
           const Spacer(),
           if (!rideEnded)

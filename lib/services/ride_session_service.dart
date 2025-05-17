@@ -27,6 +27,13 @@ class RideSessionService {
     }, SetOptions(merge: true));
   }
 
+  Future<void> setPaymentStatus(String status) async {
+    await _sessionRef.doc(_sessionId).set({
+      ..._sessionIdentifiers,
+      'paymentStatus': status,
+    }, SetOptions(merge: true));
+  }
+
   Future<LatLng?> getDestination() async {
     final doc = await _sessionRef.doc(_sessionId).get();
     final data = doc.data() as Map<String, dynamic>?;
@@ -42,7 +49,6 @@ class RideSessionService {
       '${role.toLowerCase()}Ready': true,
     }, SetOptions(merge: true));
   }
-
 
   Future<bool> isBothReady() async {
     final doc = await _sessionRef.doc(_sessionId).get();

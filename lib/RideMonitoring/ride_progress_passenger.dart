@@ -12,8 +12,7 @@ import 'package:provider/provider.dart';
 import '../models/user_model.dart';
 import '../digital_payments/add_new_card.dart';
 import 'package:cs310_project/services/database.dart';
-
-
+import '../services/ride_session_service.dart';
 
 class RideProgressPassenger extends StatefulWidget {
   @override
@@ -21,7 +20,6 @@ class RideProgressPassenger extends StatefulWidget {
 }
 
 class _RideProgressPassengerState extends State<RideProgressPassenger> {
-
   bool paymentSuccess = false;
   bool isLoading = true;
   bool hasCard = false;
@@ -56,12 +54,8 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
 
     if (sessions.docs.isNotEmpty) {
       matchedDriverId = sessions.docs.first.data()['driverId'];
-      print('🎯 [Passenger] matchedDriverId = $matchedDriverId'); // ✅ add this line
-    } else {
-      print('⚠️ [Passenger] No ride_sessions found for current user.');
     }
   }
-
 
   void _pollForDriverEnd() {
     Timer.periodic(const Duration(seconds: 2), (timer) async {
@@ -80,12 +74,11 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
         final ended = data['driverEnded'] == true;
         if (ended && !driverEndedRide) {
           setState(() => driverEndedRide = true);
-          timer.cancel(); // ✅ only cancel when confirmed
+          timer.cancel();
         }
       }
     });
   }
-
 
   Future<void> _loadTripData() async {
     setState(() => isLoading = true);
@@ -125,7 +118,6 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
 
       setState(() => isLoading = false);
     } catch (e) {
-      print('Error loading trip data: $e');
       setState(() => isLoading = false);
     }
   }
@@ -141,18 +133,10 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
           .collection('payment_methods')
           .get();
 
-      print('📦 Card count: ${cardSnap.docs.length}');
-      for (var doc in cardSnap.docs) {
-        print('📄 Card doc ID: ${doc.id}');
-        print('🔎 Card data: ${doc.data()}');
-      }
-
       setState(() {
         hasCard = cardSnap.docs.isNotEmpty;
       });
-    } catch (e) {
-      print("❌ Error checking payment method: $e");
-    }
+    } catch (e) {}
   }
 
   Future<String> _getLocationName(double lat, double lng) async {
@@ -170,7 +154,6 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
       }
       return 'Unknown Location';
     } catch (e) {
-      print('Reverse geocoding failed: $e');
       return 'Unknown Location';
     }
   }
@@ -199,6 +182,14 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
   double _toRadians(double deg) => deg * (pi / 180);
 
   void handlePayment(MyUser user, UserModel? userdata, DatabaseService dbService) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null || matchedDriverId == null) return;
+
+    final sessionService = RideSessionService(
+      passengerId: currentUser.uid,
+      driverId: matchedDriverId!,
+    );
+
     if (!hasCard) {
       await showDialog(
         context: context,
@@ -208,7 +199,7 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.pop(context); // Close the dialog
+                Navigator.pop(context);
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -224,25 +215,12 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
                     ),
                   ),
                 );
-                await _checkPaymentMethod(); // ✅ re-check after returning
+                await _checkPaymentMethod();
                 if (hasCard) {
-                  setState(() {
-                    paymentSuccess = true;
-                  });
-
-                  // ✅ Update Firestore to notify driver of completed payment
-                  final currentUser = FirebaseAuth.instance.currentUser;
-                  if (currentUser != null && matchedDriverId != null) {
-                    final sessionId = 'session_${currentUser.uid}_$matchedDriverId';
-                    await FirebaseFirestore.instance
-                        .collection('ride_sessions')
-                        .doc(sessionId)
-                        .update({'paymentStatus': 'completed'});
-                  }
-
+                  await sessionService.setPaymentStatus('completed');
+                  setState(() => paymentSuccess = true);
                   _showSuccessDialog();
                 }
-
               },
               child: const Text("Go to Wallet"),
             )
@@ -252,6 +230,7 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
       return;
     }
 
+    await sessionService.setPaymentStatus('completed');
     setState(() => paymentSuccess = true);
     _showSuccessDialog();
   }
@@ -272,13 +251,11 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<MyUser>(context);
     final userdata = Provider.of<UserModel?>(context);
     final dbService = DatabaseService(uid: user.uid);
-    print('🛠 RideProgressPassenger build triggered, matchedDriverId = $matchedDriverId');
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.appBarBackground,
@@ -339,7 +316,7 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: () async {
-                  await _checkPaymentMethod(); // <- Refresh Firestore status
+                  await _checkPaymentMethod();
                   handlePayment(user, userdata, dbService);
                 },
                 child: Text("Make Payment", style: kButtonText),
