@@ -556,7 +556,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                                         debugPrint("Entry 1");
                                         if(passengerInfo.containsKey("passenger_information") && passengerInfo["passenger_information"] is Map) {
                                           debugPrint("Element");
-                                          await pass_info.update({
+                                          await pass_info.update({'passenger_information': {
                                             'latitude': finalLat,
                                             'longitude': finalLng,
                                             'luggage': luggageAmount,
@@ -570,7 +570,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                                             'smoking_situation': yourSmoking,
                                             'car_type_preference': preferredCarType
 
-                                          });
+                                          }},);
                                         }
                                         else {
                                           debugPrint("Entry 2");

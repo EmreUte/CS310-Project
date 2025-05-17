@@ -54,6 +54,9 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
     final response = await http.get(
       //OpenStreetMap
       Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=$query&countrycodes=tr'), // Turkey-only results
+      headers: {
+        'User-Agent': 'My_Ride/1.0 (mbcatak03@gmail.com)',
+      },
       //Stadia Maps
       //Uri.parse("https://api.stadiamaps.com/geocoding/v1/search?text=$query&api_key=ca885b1b-d8dd-44b4-9036-d78e3405996c&countrycodes=tr"),
 
@@ -593,20 +596,20 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
                                 if(passengerInfo.containsKey("driver_information") && passengerInfo["passenger_information"] is Map) {
                                 debugPrint("Element");
                                 await pass_info.update({
-                                'latitude': finalLat,
-                                'longitude': finalLng,
-                                'luggage_capacity': luggageCapacity,
-                                'gender_preference': selectedGender,
-                                'passenger_gender': yourGender,
-                                'preferred_rating': selectedRating,
-                                'passenger_rating': Random().nextInt(5) + 1,
-                                'tip': reqTipAmount,
-                                'requested_driver_exp': driverExperience,
-                                'smoking_preference': selectedSmoking,
-                                'smoking_situation': yourSmoking,
-                                'car_type': selectedCarType,
-                                'driving_experience': driverExperience,
-                                },);
+                                'driver_information': {'latitude': finalLat,
+                                  'longitude': finalLng,
+                                  'luggage_capacity': luggageCapacity,
+                                  'gender_preference': selectedGender,
+                                  'passenger_gender': yourGender,
+                                  'preferred_rating': selectedRating,
+                                  'passenger_rating': Random().nextInt(5) + 1,
+                                  'tip': reqTipAmount,
+                                  'requested_driver_exp': driverExperience,
+                                  'smoking_preference': selectedSmoking,
+                                  'smoking_situation': yourSmoking,
+                                  'car_type': selectedCarType,
+                                  'driving_experience': driverExperience,
+                                }},);
                                 } else {
                                   debugPrint("Entry 2");
                                   await pass_info.set({
