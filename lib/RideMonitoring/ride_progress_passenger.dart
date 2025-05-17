@@ -220,6 +220,8 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
                   await sessionService.setPaymentStatus('completed');
                   setState(() => paymentSuccess = true);
                   _showSuccessDialog();
+                  await sessionService.resetSessionStateAfterPayment();
+
                 }
               },
               child: const Text("Go to Wallet"),

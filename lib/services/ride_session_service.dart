@@ -66,6 +66,25 @@ class RideSessionService {
     return data?['driverEnded'] == true;
   }
 
+  Future<void> resetUserReadyStates() async {
+    await _sessionRef.doc(_sessionId).set({
+      ..._sessionIdentifiers,
+      'driverReady': false,
+      'passengerReady': false,
+    }, SetOptions(merge: true));
+  }
+  Future<void> resetSessionStateAfterPayment() async {
+    await Future.delayed(const Duration(seconds: 3));
+    await _sessionRef.doc(_sessionId).set({
+      ..._sessionIdentifiers,
+      'driverEnded': false,
+      'driverReady': false,
+      'passengerReady': false,
+      'paymentStatus': 'pending',
+    }, SetOptions(merge: true));
+  }
+
+
   Future<void> clearSession() async {
     await _sessionRef.doc(_sessionId).delete();
   }

@@ -20,6 +20,7 @@ class FindingRideScreen extends StatefulWidget {
 }
 
 class _FindingRideScreenState extends State<FindingRideScreen> {
+  StreamSubscription<DocumentSnapshot>? _sessionListener;
   int _currentStep = 0;
   Timer? _timer;
   bool _matchFound = false;
@@ -38,6 +39,44 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
     super.initState();
     _getUserTypeAndStartMatching();
   }
+  Future<void> _cancelAndResetSession() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null && _userType.isNotEmpty) {
+      final isPassenger = _userType == 'Passenger';
+      final passengerId = isPassenger ? currentUser.uid : await _getMatchedPassengerId();
+      final driverId = isPassenger ? await _getMatchedDriverId() : currentUser.uid;
+
+      if (passengerId != null && driverId != null) {
+        final session = RideSessionService(passengerId: passengerId, driverId: driverId);
+        await session.resetUserReadyStates();
+      }
+    }
+
+    _timer?.cancel();
+    if (mounted) Navigator.pop(context);
+  }
+
+
+  Future<String?> _getMatchedPassengerId() async {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUid == null) return null;
+    final sessions = await FirebaseFirestore.instance
+        .collection('ride_sessions')
+        .where('driverId', isEqualTo: currentUid)
+        .get();
+    return sessions.docs.isNotEmpty ? sessions.docs.first['passengerId'] : null;
+  }
+
+  Future<String?> _getMatchedDriverId() async {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUid == null) return null;
+    final sessions = await FirebaseFirestore.instance
+        .collection('ride_sessions')
+        .where('passengerId', isEqualTo: currentUid)
+        .get();
+    return sessions.docs.isNotEmpty ? sessions.docs.first['driverId'] : null;
+  }
+
   Future<void> _getUserTypeAndStartMatching() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
@@ -139,9 +178,36 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
             content: const Text('Sorry, we couldn\'t find a suitable match for you at this time. Please try again later.'),
             actions: [
               TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
+                onPressed: () async {
+                  Navigator.of(context).pop(); // Close the dialog first
+                  await _cancelAndResetSession(); // Then pop the page with state reset
+                },
+
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    });
+  }
+  void _stopAnimationAndShowNoMatch() {
+    _timer?.cancel();
+    _sessionListener?.cancel();
+
+    Future.delayed(Duration.zero, () {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('No Match Found'),
+            content: const Text('One of the parties canceled. Please try again.'),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop(); // Close dialog
+                  await _cancelAndResetSession(); // Pop page and reset state
                 },
                 child: const Text('OK'),
               ),
@@ -153,27 +219,58 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
   }
 
 
-// Modify _startProgressAnimation to navigate to ride progress when complete
   void _startProgressAnimation() {
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      if (_currentStep < steps.length - 1) {
-        setState(() {
-          _currentStep++;
-        });
-      } else {
-        _timer?.cancel(); // Stop when finished
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return;
 
-        // Navigate to the appropriate ride progress screen
-        if (_userType == 'Driver') {
-          Navigator.pushNamed(context, '/ride_progress_driver');
-        } else if (_userType == 'Passenger') {
-          Navigator.pushNamed(context, '/ride_progress_passenger');
-        } else {
-          Navigator.pop(context); // Fallback if user type is unknown
+    // Get session ID
+    final isPassenger = _userType == 'Passenger';
+    final sessionIdFuture = isPassenger ? _getMatchedDriverId() : _getMatchedPassengerId();
+
+    sessionIdFuture.then((otherUserId) {
+      if (otherUserId == null) return;
+      final passengerId = isPassenger ? currentUser.uid : otherUserId;
+      final driverId = isPassenger ? otherUserId : currentUser.uid;
+      final sessionId = 'session_${passengerId}_$driverId';
+
+      // Setup listener
+      _sessionListener = FirebaseFirestore.instance
+          .collection('ride_sessions')
+          .doc(sessionId)
+          .snapshots()
+          .listen((snapshot) {
+        final data = snapshot.data();
+        if (data == null) return;
+
+        final passengerReady = data['passengerReady'] == true;
+        final driverReady = data['driverReady'] == true;
+
+        if (!passengerReady || !driverReady) {
+          _stopAnimationAndShowNoMatch();
         }
-      }
+      });
+
+      // Start animation
+      _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+        if (_currentStep < steps.length - 1) {
+          setState(() => _currentStep++);
+        } else {
+          _timer?.cancel();
+          _sessionListener?.cancel();
+
+          // Navigate to the appropriate screen
+          if (_userType == 'Driver') {
+            Navigator.pushNamed(context, '/ride_progress_driver');
+          } else if (_userType == 'Passenger') {
+            Navigator.pushNamed(context, '/ride_progress_passenger');
+          } else {
+            Navigator.pop(context);
+          }
+        }
+      });
     });
   }
+
 
   @override
   void dispose() {
@@ -198,7 +295,8 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryText),
-          onPressed: () => Navigator.pop(context),
+          onPressed: _cancelAndResetSession,
+
         ),
         title: Text(
           "Find Your Ride",
@@ -251,11 +349,8 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
                       borderRadius: BorderRadius.circular(12),
               ),
             ),
-                      onPressed: () {
-                      // Cancel logic & return to the previous screen
-                      _timer?.cancel(); // Stop animation if user cancels
-                      Navigator.pop(context);
-                    },
+                onPressed: _cancelAndResetSession,
+
                 child: Center(
                       child: Text(
                               'Cancel',

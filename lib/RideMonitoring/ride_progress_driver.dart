@@ -8,6 +8,8 @@ import '../utils/colors.dart';
 import '../utils/styles.dart';
 import '../maps/road_trip_map.dart';
 import 'dart:async';
+import '../services/ride_session_service.dart';
+
 
 class RideProgressDriver extends StatefulWidget {
   @override
@@ -41,14 +43,21 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
         .collection('ride_sessions')
         .doc(sessionId)
         .snapshots()
-        .listen((snapshot) {
+        .listen((snapshot) async {
       final data = snapshot.data();
       if (data == null) return;
 
       final paymentStatus = data['paymentStatus'];
       if (paymentStatus == 'completed') {
-        if (!mounted) return;
+        final sessionService = RideSessionService(
+          passengerId: matchedPassengerId!,
+          driverId: currentUser.uid,
+        );
 
+        // Reset session values 3 seconds after payment
+        await sessionService.resetSessionStateAfterPayment();
+
+        if (!mounted) return;
         showDialog(
           context: context,
           builder: (_) => AlertDialog(
@@ -66,10 +75,17 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
     });
   }
 
+
   Future<void> _initialize() async {
     matchedPassengerId = await _getMatchedPassengerId();
-    _listenForPaymentStatus();
+    if (matchedPassengerId != null) {
+      setState(() {
+        isLoading = false;
+      });
+      _listenForPaymentStatus();
+    }
   }
+
 
   Future<String?> _getMatchedPassengerId() async {
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
@@ -134,10 +150,11 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
         children: [
           SizedBox(
             height: 300,
-            child: matchedPassengerId == null
-                ? Center(child: CircularProgressIndicator())
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
                 : RoadTripMap(passengerId: matchedPassengerId!, driverId: driverId),
           ),
+
           const Spacer(),
           if (!rideEnded)
             Padding(
