@@ -47,7 +47,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
   bool isExpanded = false;
   String? preferredCarType;
   List<String> carTypes = ["SUV","Sports","Convertible","Mini Van","Electric","Sedan"];
-
+  bool _isLoading = true;
 
 
   Future<List<Map<String, dynamic>>> searchAddress(String query) async {
@@ -74,6 +74,65 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
     debugPrint(response.statusCode.toString());
     return[];
     }
+
+
+  @override
+  void initState() {
+    super.initState();
+    _loadExistingData();
+  }
+
+  @override
+  void dispose() {
+    // Clean up controllers
+    _locationController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadExistingData() async {
+    setState(() => _isLoading = true);
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception('User not authenticated');
+    try {
+      final saved_info = await FirebaseFirestore.instance
+          .collection('users').doc(user.uid);
+      final s_info = await saved_info.get();
+      if (s_info.exists) {
+        final savedInfo = s_info.data()!;
+        debugPrint("Entry 1");
+        if (savedInfo.containsKey("passenger_information") &&
+            savedInfo["passenger_information"] is Map) {
+          if (savedInfo["passenger_information"] != null) {
+            final existingData = savedInfo["passenger_information"];
+            debugPrint(existingData['luggage']);
+            debugPrint(existingData['tip']);
+            setState(() {
+              _locationController.text = existingData['location_query'] ?? '';
+              luggageAmount = existingData['luggage'] ?? '';
+              selectedGender = existingData['gender_preference'] ?? "None";
+              yourGender = existingData['passenger_gender'] ?? "None";
+              selectedRating = existingData['preferred_rating'];
+              tipAmount = existingData['tip'] ?? '';
+              selectedSmoking = existingData['smoking_preference'] ?? "Non-Smoking";
+              yourSmoking = existingData['smoking_situation'] ?? "Non-Smoker";
+              preferredCarType = existingData['car_type_preference'];
+              driverExperience = existingData['requested_driver_exp'] ?? '';
+              selectedLat = existingData['latitude'];
+              selectedLng = existingData['longitude'];
+            });
+          }
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading data: ${e.toString()}')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+
 
 
 
@@ -112,6 +171,21 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
   @override
   Widget build(BuildContext context)
   {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text("Driver Preferences", style: kAppBarText),
+          automaticallyImplyLeading: false,
+        ),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -205,6 +279,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                   Text("Luggage", style: kFillerText),
                   SizedBox(height: 5),
                   TextFormField(
+                    initialValue: luggageAmount,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: AppColors.fillBox,
@@ -284,6 +359,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                 child: FormField<int>
                   (
                     validator: (value) {
+                      value = selectedRating;
                       if (value == null) {
                         return 'Please select an option';
                       }
@@ -350,6 +426,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                                   "Tip Amount - In TRY", style: kFillerText)),
                           SizedBox(height: 5),
                           TextFormField(
+                            initialValue: tipAmount,
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: AppColors.fillBox,
@@ -382,6 +459,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                               child: Text("Driver Experience - In Years", style: kFillerText)),
                           SizedBox(height: 5),
                           TextFormField(
+                            initialValue: driverExperience,
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: AppColors.fillBox,
@@ -467,6 +545,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                             padding: Dimen.textboxPadding,
                             child: FormField<String>(
                               validator: (value) {
+                                value = preferredCarType;
                                 if (value == null) {
                                   return 'Please select an option';
                                 }
@@ -562,6 +641,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                                           await pass_info.update({'passenger_information': {
                                             'latitude': finalLat,
                                             'longitude': finalLng,
+                                            'location_query': _locationController.text,
                                             'luggage': luggageAmount,
                                             'gender_preference': selectedGender,
                                             'passenger_gender': yourGender,
@@ -581,6 +661,7 @@ class _PassengerPreferencesScreenState extends State<PassengerPreferencesScreen>
                                             'passenger_information': {
                                               'latitude': finalLat,
                                               'longitude': finalLng,
+                                              'location_query': _locationController.text,
                                               'luggage': luggageAmount,
                                               'gender_preference': selectedGender,
                                               'passenger_gender': yourGender,

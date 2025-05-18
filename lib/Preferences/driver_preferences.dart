@@ -21,8 +21,7 @@ class DriverPreferencesScreen extends StatefulWidget
   State<DriverPreferencesScreen> createState() => _DriverPreferencesScreenState();
 }
 
-class _DriverPreferencesScreenState extends State<DriverPreferencesScreen> 
-{
+class _DriverPreferencesScreenState extends State<DriverPreferencesScreen> {
   final _formKey = GlobalKey<FormState>();
   String luggageCapacity = "";
   final _locationController = TextEditingController();
@@ -34,9 +33,9 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
   String reqTipAmount = "";
   String passengerCapacity = "";
   bool hasSubmitted = false;
-  final List<String> genderPreference = ["Male","Female","None"];
-  final List<String> smokingPreference = ["Non-Smoking","Smoking Allowed"];
-  final List<String> smokingSituation = ["Non-Smoker","Smoker"];
+  final List<String> genderPreference = ["Male", "Female", "None"];
+  final List<String> smokingPreference = ["Non-Smoking", "Smoking Allowed"];
+  final List<String> smokingSituation = ["Non-Smoker", "Smoker"];
   String selectedGender = "None";
   String selectedSmoking = "Non-Smoking";
   String yourGender = "None";
@@ -47,13 +46,22 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
   bool isExpanded = false;
   String? selectedCarType;
   String driverExperience = "";
-  List<String> carTypes = ["SUV","Sports","Convertible","Mini Van","Electric","Sedan"];
-
+  List<String> carTypes = [
+    "SUV",
+    "Sports",
+    "Convertible",
+    "Mini Van",
+    "Electric",
+    "Sedan"
+  ];
+  bool _isLoading = true;
 
   Future<List<Map<String, dynamic>>> searchAddress(String query) async {
     final response = await http.get(
       //OpenStreetMap
-      Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=$query&countrycodes=tr'), // Turkey-only results
+      Uri.parse(
+          'https://nominatim.openstreetmap.org/search?format=json&q=$query&countrycodes=tr'),
+      // Turkey-only results
       headers: {
         'User-Agent': 'My_Ride/1.0 (mbcatak03@gmail.com)',
       },
@@ -65,7 +73,8 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
 
     if (response.statusCode == 200) {
       return (json.decode(response.body) as List)
-          .map((place) => {
+          .map((place) =>
+      {
         'display': place['display_name'],
         'lat': place['lat'],
         'lon': place['lon'],
@@ -76,32 +85,87 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
     return [];
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _loadExistingData();
+  }
+
+  @override
+  void dispose() {
+    // Clean up controllers
+    _locationController.dispose();
+    super.dispose();
+  }
+
+
+  Future<void> _loadExistingData() async {
+    setState(() => _isLoading = true);
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception('User not authenticated');
+    try {
+      final saved_info = await FirebaseFirestore.instance
+          .collection('users').doc(user.uid);
+      final s_info = await saved_info.get();
+      if (s_info.exists) {
+        final savedInfo = s_info.data()!;
+        debugPrint("Entry 1");
+        if (savedInfo.containsKey("driver_information") &&
+            savedInfo["driver_information"] is Map) {
+          if (savedInfo["driver_information"] != null) {
+            final existingData = savedInfo["driver_information"];
+            debugPrint(existingData['luggage_capacity']);
+            setState(() {
+              _locationController.text = existingData['location_query'] ?? '';
+              luggageCapacity = existingData['luggage_capacity'] ?? '';
+              selectedGender = existingData['gender_preference'] ?? "None";
+              yourGender = existingData['passenger_gender'] ?? "None";
+              selectedRating = existingData['preferred_rating'];
+              reqTipAmount = existingData['tip'] ?? '';
+              passengerCapacity = existingData['passenger_capacity'] ?? '';
+              selectedSmoking = existingData['smoking_preference'] ?? "Non-Smoking";
+              yourSmoking = existingData['smoking_situation'] ?? "Non-Smoker";
+              selectedCarType = existingData['car_type'];
+              driverExperience = existingData['driving_experience'] ?? '';
+              selectedLat = existingData['latitude'];
+              selectedLng = existingData['longitude'];
+            });
+          }
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading data: ${e.toString()}')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
 
   Future<void> _showDialog(String title, String message) async {
     bool isAndroid = Platform.isAndroid;
     return showDialog(context: context, builder: (BuildContext context) {
-      if(isAndroid) 
-      {
+      if (isAndroid) {
         return AlertDialog(
           title: Text(title),
           content: Text(message),
           actions: [
             TextButton(onPressed: () {
               Navigator.pop(context);
-            },child: Text("OK"))
-          ], 
+            }, child: Text("OK"))
+          ],
         );
       }
-      else 
-      {
+      else {
         return CupertinoAlertDialog(
           title: Text(title),
           content: Text(message),
           actions: [
             TextButton(onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                    child: Text('OK'))
+              Navigator.of(context).pop();
+            },
+                child: Text('OK'))
           ],
 
         );
@@ -110,103 +174,124 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
   }
 
   @override
-  Widget build(BuildContext context) 
-  {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-      leading: IconButton(
-          icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
-          onPressed: () => Navigator.pop(context),
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.chevron_left_outlined, size: 33, color: AppColors.primaryText),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text("Driver Preferences", style: kAppBarText),
+          automaticallyImplyLeading: false,
         ),
-      title: Text("Driver Preferences",
-          style: kAppBarText,
-      ),
-      automaticallyImplyLeading: false,
-      ),
-    body: SingleChildScrollView(child: Padding(
-      //EdgeInsets.fromLTRB(30, 30, 30, 80)
-      padding: Dimen.screenPadding,
-      child: Form(key: _formKey, child: 
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text("Location", style: kFillerText),
-              SizedBox(height: 5),
-              FormField<String>(
-                validator: (value) {
-                  if (_locationController.text.isEmpty) {
-                    return 'Please enter your location';
-                  }
-                  return null;
-                },
-                builder: (FormFieldState<String> state) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TypeAheadField<Map<String, dynamic>>(
-                        suggestionsCallback: (pattern) async {
-                          // Due to limitations.
-                          await Future.delayed(Duration(seconds: 1));
-                          return await searchAddress(pattern);
-                        },
-                        itemBuilder: (context, suggestion) {
-                          return ListTile(
-                            title: Text(suggestion['display']),
-                          );
-                        },
-                        onSelected: (suggestion) {
-                          _locationController.text = suggestion['display'];
-                          _formKey.currentState?.save();
-                          state.didChange(_locationController.text); // Inform the form field
-                          setState(() {
-                            selectedLat = double.parse(suggestion['lat']);
-                            selectedLng = double.parse(suggestion['lon']);
-                          });
-                        },
-                        builder: (context, controller, focusNode) {
-                          // Sync internal TypeAhead controller with your external controller
-                          controller.text = _locationController.text;
-                          controller.selection = TextSelection.fromPosition(
-                            TextPosition(offset: controller.text.length),
-                          );
-                          return TextField(
-                            controller: controller,
-                            focusNode: focusNode,
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: AppColors.fillBox,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              contentPadding: Dimen.textboxPadding,
-                              labelText: 'Enter your current location',
-                              hintText: 'Ex: Orta Mahallesi, Üniversite Cd...',
-                              suffixIcon: Icon(Icons.search),
-                              errorText: state.errorText,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.chevron_left_outlined, size: 33,
+                color: AppColors.primaryText),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text("Driver Preferences",
+            style: kAppBarText,
+          ),
+          automaticallyImplyLeading: false,
+        ),
+        body: SingleChildScrollView(child: Padding(
+          //EdgeInsets.fromLTRB(30, 30, 30, 80)
+          padding: Dimen.screenPadding,
+          child: Form(key: _formKey, child:
+          Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text("Location", style: kFillerText),
+                    SizedBox(height: 5),
+                    FormField<String>(
+                      validator: (value) {
+                        if (_locationController.text.isEmpty) {
+                          return 'Please enter your location';
+                        }
+                        return null;
+                      },
+                      builder: (FormFieldState<String> state) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TypeAheadField<Map<String, dynamic>>(
+                              suggestionsCallback: (pattern) async {
+                                // Due to limitations.
+                                await Future.delayed(Duration(seconds: 1));
+                                return await searchAddress(pattern);
+                              },
+                              itemBuilder: (context, suggestion) {
+                                return ListTile(
+                                  title: Text(suggestion['display']),
+                                );
+                              },
+                              onSelected: (suggestion) {
+                                _locationController.text =
+                                suggestion['display'];
+                                _formKey.currentState?.save();
+                                state.didChange(_locationController
+                                    .text); // Inform the form field
+                                setState(() {
+                                  selectedLat = double.parse(suggestion['lat']);
+                                  selectedLng = double.parse(suggestion['lon']);
+                                });
+                              },
+                              builder: (context, controller, focusNode) {
+                                // Sync internal TypeAhead controller with your external controller
+                                controller.text = _locationController.text;
+                                controller.selection =
+                                    TextSelection.fromPosition(
+                                      TextPosition(
+                                          offset: controller.text.length),
+                                    );
+                                return TextField(
+                                  controller: controller,
+                                  focusNode: focusNode,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: AppColors.fillBox,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    contentPadding: Dimen.textboxPadding,
+                                    labelText: 'Enter your current location',
+                                    hintText: 'Ex: Orta Mahallesi, Üniversite Cd...',
+                                    suffixIcon: Icon(Icons.search),
+                                    errorText: state.errorText,
+                                  ),
+                                  onChanged: (value) {
+                                    _locationController.text = value;
+                                    state.didChange(
+                                        value); // Trigger validation updates
+                                  },
+                                );
+                              },
                             ),
-                            onChanged: (value) {
-                              _locationController.text = value;
-                              state.didChange(value); // Trigger validation updates
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  );
-                },
-                onSaved: (value) {
-                  finalLat = selectedLat;
-                  finalLng = selectedLng;
-                },
-              ),
-              SizedBox(height: 25,),
-                Text("Luggage Capacity", style: kFillerText),
-            SizedBox(height: 5),
-            TextFormField(
+                          ],
+                        );
+                      },
+                      onSaved: (value) {
+                        finalLat = selectedLat;
+                        finalLng = selectedLng;
+                      },
+                    ),
+                    SizedBox(height: 25,),
+                    Text("Luggage Capacity", style: kFillerText),
+                    SizedBox(height: 5),
+                    TextFormField(
+                      initialValue: luggageCapacity,
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: AppColors.fillBox,
@@ -230,453 +315,483 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
                     ),
                   ],
                 ),
-            SizedBox(height: 15),
-            Center(
-                child: Text("Passenger  Gender  Preference",style: kFillerText)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: genderPreference.map<Widget>((option) {
-                // const EdgeInsets.symmetric(horizontal: 17.0)
-                return Padding(padding: Dimen.textboxPadding,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [Radio<String>(
-                      value: option,
-                      groupValue: selectedGender,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedGender = value!;
-                            });
-                          }
-                        ),
-                      Text(option,style: kFillerTextSmall,),
-                      ],
-                    ),
-                  );
-              }).toList(),
-            ),
-          Center(
-              child: Text("Your Gender Information",style: kFillerText)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: genderPreference.map<Widget>((option) {
-              return Padding(padding: const EdgeInsets.symmetric(horizontal: 17.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [Radio<String>(
-                      value: option,
-                      groupValue: yourGender,
-                      onChanged: (value) {
-                        setState(() {
-                          yourGender = value!;
-                        });
-                      }
-                  ),
-                    Text(option),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-          SizedBox(height: 15),
-          Center(
-              child: Text("Rating",style: kFillerText)),
-          Padding(
-          padding: Dimen.cardMargins,
-          child: FormField<int>
-            (
-            validator: (value) {
-              if (value == null) {
-                return 'Please select an option';
-              }
-              return null;
-            },
-            builder: (field) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-              InputDecorator(
-              decoration: InputDecoration(
-              //EdgeInsets.zero
-                contentPadding: Dimen.cardMargins,
-                border: InputBorder.none,
-                errorText: field.errorText,
-              ),
-                child: ExpansionTile(
-                  title:
-                  Center(
+                SizedBox(height: 15),
+                Center(
                     child: Text(
-                    selectedRating == null
-                        ? "Select Rating(1 to 5)"
-                        : "Selected Rating: $selectedRating ⭐",
-                    style: kFillerText,),
-                  ),
-                  collapsedBackgroundColor: AppColors.fillBox,
-                  backgroundColor: AppColors.fillBox,
-                  collapsedShape: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  shape: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  onExpansionChanged: (bool expand) {
-                    setState(() {
-                      //isExpandedRating = expand;
-                      isExpanded = expand;
-                    });
-                  },
-                  children: List.generate(5, (index) {
-                    int rating = index + 1;
-                    return RadioListTile<int>(
-                      title: Text("$rating ⭐"),
-                      value: rating,
-                      groupValue: selectedRating,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedRating = value;
-                          field.didChange(value);
-                        });
-                        setState(() {
-                          //isExpandedRating = false;
-                          isExpanded = false;
-                        });
-                      },
+                        "Passenger  Gender  Preference", style: kFillerText)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: genderPreference.map<Widget>((option) {
+                    // const EdgeInsets.symmetric(horizontal: 17.0)
+                    return Padding(padding: Dimen.textboxPadding,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [Radio<String>(
+                            value: option,
+                            groupValue: selectedGender,
+                            onChanged: (value) {
+                              setState(() {
+                                selectedGender = value!;
+                              });
+                            }
+                        ),
+                          Text(option, style: kFillerTextSmall,),
+                        ],
+                      ),
                     );
-                  }),
+                  }).toList(),
                 ),
-              ),
-                  SizedBox(height: 15),
-                  Center(
-                      child: Text(
-                          "Required Tip Amount - In TRY", style: kFillerText)),
-                  SizedBox(height: 5),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: AppColors.fillBox,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                Center(
+                    child: Text("Your Gender Information", style: kFillerText)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: genderPreference.map<Widget>((option) {
+                    return Padding(padding: const EdgeInsets.symmetric(
+                        horizontal: 17.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [Radio<String>(
+                            value: option,
+                            groupValue: yourGender,
+                            onChanged: (value) {
+                              setState(() {
+                                yourGender = value!;
+                              });
+                            }
+                        ),
+                          Text(option),
+                        ],
                       ),
-                      contentPadding: Dimen.textboxPadding,
-                    ),
-                    validator: (value) {
-                      if (value != null) {
-                        if (value.isEmpty) {
-                          return "Please enter an amount";
-                        }
-                        else if (int.tryParse(value) == null) {
-                          return "Please enter a valid integer as value";
-                        }
-                        else if (int.tryParse(value) ! < 0) {
-                          return "Please enter a non-negative integer value.";
-                        }
-                      }
-                      return null;
-                    },
-                    onSaved: (value) {
-                      reqTipAmount = value ?? '';
-                    },
-                  ),
-                  SizedBox(height: 15),
-                  Center(
-                      child: Text("Passenger Capacity", style: kFillerText)),
-                  SizedBox(height: 5),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: AppColors.fillBox,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: Dimen.textboxPadding,
-                    ),
-                    validator: (value) {
-                      if (value != null) {
-                        if (value.isEmpty) {
-                          return "Please enter a number";
-                        }
-                        else if (int.tryParse(value) == null) {
-                          return "Please enter a valid integer as passenger capacity";
-                        }
-                        else if (int.tryParse(value) ! < 0 &&
-                            int.tryParse(value) ! > 15) {
-                          return "Please enter a plausible passenger capacity";
-                        }
-                      }
-                      return null;
-                    },
-                    onSaved: (value) {
-                      passengerCapacity = value ?? '';
-                    },
-                  ),
-                  SizedBox(height: 15),
-                  Center(
-                      child: Text("Smoking Preference", style: kFillerText)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: smokingPreference.map<Widget>((option) {
-                      return Padding(
-                        //const EdgeInsets.symmetric(horizontal: 17.0)
-                        padding: Dimen.textboxPadding,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [Radio<String>(
-                              value: option,
-                              groupValue: selectedSmoking,
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedSmoking = value!;
-                                });
-                              }
-                          ),
-                            Text(option,style: kFillerTextSmall),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  SizedBox(height: 15),
-                  Center(
-                      child: Text("Your Smoking Information", style: kFillerText)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: smokingSituation.map<Widget>((option) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 17.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [Radio<String>(
-                              value: option,
-                              groupValue: yourSmoking,
-                              onChanged: (value) {
-                                setState(() {
-                                  yourSmoking = value!;
-                                });
-                              }
-                          ),
-                            Text(option),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  SizedBox(height: 15),
-                  Center(
-                      child: Text("Car Type", style: kFillerText)),
-                  Padding(
-                    padding: Dimen.cardMargins,
-                    child: FormField<String>(
-                      validator: (value) {
-                      if (value == null) {
-                      return 'Please select an option';
-                      }
-                      return null;
-                      },
-                      builder: (field) {
-                        return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                InputDecorator(
-                        decoration: InputDecoration(
-                        contentPadding: Dimen.cardMargins,
-                          border: InputBorder.none,
-                          errorText: field.errorText,
-                        ),
-                        child:ExpansionTile(
-              title:
-              Center(child: Text(
-              selectedCarType == null
-              ? "Select Car Type"
-                  : "$selectedCarType",
-              ),
-
-              ),
-              collapsedBackgroundColor: AppColors.fillBox,
-              backgroundColor: AppColors.fillBox,
-              collapsedShape: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-              ),
-              shape: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-              ),
-              onExpansionChanged: (bool expand) {
-              setState(() {
-              //isExpandedCarType = expand;
-              isExpanded = expand;
-              });
-              },
-              children: carTypes.map((element) {
-                return RadioListTile<String>(
-              title: Text(element,style: kFillerTextSmall),
-              value: element,
-              groupValue: selectedCarType,
-              onChanged: (value) {
-              setState(() {
-              selectedCarType = value;
-              field.didChange(value);
-              });
-              setState(() {
-              //isExpandedCarType = false;
-              isExpanded = false;
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
+                    );
+                  }).toList(),
                 ),
                 SizedBox(height: 15),
                 Center(
-                    child: Text("Driver Experience - In Years", style: kFillerText)),
-            SizedBox(height: 5),
-            TextFormField(
-            decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.fillBox,
-            border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-            ),
-            contentPadding: Dimen.textboxPadding,
-            ),
-            validator: (value) {
-            if (value != null) {
-            if (value.isEmpty) {
-            return "Please enter a number";
-            }
-            else if (int.tryParse(value) == null) {
-            return "Please enter a valid integer as driver experience";
-            }
-            else if (int.tryParse(value) ! < 0 &&
-            int.tryParse(value) ! > 70) {
-            return "Please enter a plausible driver experience";
-            }
-            }
-            return null;
-            },
-            onSaved: (value) {
-            driverExperience = value ?? '';
-            },
-            ),
-            SizedBox(height: 15),
-            ],
-            );
-          },
-        ),
-                  ),
-              SizedBox(height: 10),
-                  Center(
-                    child: SizedBox(
-                      width: 222,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          setState(() {
-                            hasSubmitted =
-                            true; // Set flag when button is clicked
-                          });
-                          if (_formKey.currentState!.validate()) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Processing Data')),
-                            );
-                            _formKey.currentState!.save();
-                            try {
-                            final user = FirebaseAuth.instance.currentUser;
-                            if (user == null) throw Exception('User not authenticated');
+                    child: Text("Rating", style: kFillerText)),
+                Padding(
+                  padding: Dimen.cardMargins,
+                  child: FormField<int>
+                    (
+                      validator: (value) {
+                        value = selectedRating;
+                        if (value == null) {
+                          return 'Please select an option';
+                        }
+                        return null;
+                      },
+                      builder: (field) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InputDecorator(
+                              decoration: InputDecoration(
+                                //EdgeInsets.zero
+                                contentPadding: Dimen.cardMargins,
+                                border: InputBorder.none,
+                                errorText: field.errorText,
+                              ),
+                              child: ExpansionTile(
+                                title:
+                                Center(
+                                  child: Text(
+                                    selectedRating == null
+                                        ? "Select Rating(1 to 5)"
+                                        : "Selected Rating: $selectedRating ⭐",
+                                    style: kFillerText,),
+                                ),
+                                collapsedBackgroundColor: AppColors.fillBox,
+                                backgroundColor: AppColors.fillBox,
+                                collapsedShape: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                shape: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                onExpansionChanged: (bool expand) {
+                                  setState(() {
+                                    //isExpandedRating = expand;
+                                    isExpanded = expand;
+                                  });
+                                },
+                                children: List.generate(5, (index) {
+                                  int rating = index + 1;
+                                  return RadioListTile<int>(
+                                    title: Text("$rating ⭐"),
+                                    value: rating,
+                                    groupValue: selectedRating,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        selectedRating = value;
+                                        field.didChange(value);
+                                      });
+                                      setState(() {
+                                        //isExpandedRating = false;
+                                        isExpanded = false;
+                                      });
+                                    },
+                                  );
+                                }),
+                              ),
+                            ),
+                            SizedBox(height: 15),
+                            Center(
+                                child: Text(
+                                    "Required Tip Amount - In TRY",
+                                    style: kFillerText)),
+                            SizedBox(height: 5),
+                            TextFormField(
+                              initialValue: reqTipAmount,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: AppColors.fillBox,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: Dimen.textboxPadding,
+                              ),
+                              validator: (value) {
+                                if (value != null) {
+                                  if (value.isEmpty) {
+                                    return "Please enter an amount";
+                                  }
+                                  else if (int.tryParse(value) == null) {
+                                    return "Please enter a valid integer as value";
+                                  }
+                                  else if (int.tryParse(value) ! < 0) {
+                                    return "Please enter a non-negative integer value.";
+                                  }
+                                }
+                                return null;
+                              },
+                              onSaved: (value) {
+                                reqTipAmount = value ?? '';
+                              },
+                            ),
+                            SizedBox(height: 15),
+                            Center(
+                                child: Text(
+                                    "Passenger Capacity", style: kFillerText)),
+                            SizedBox(height: 5),
+                            TextFormField(
+                              initialValue: passengerCapacity,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: AppColors.fillBox,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: Dimen.textboxPadding,
+                              ),
+                              validator: (value) {
+                                if (value != null) {
+                                  if (value.isEmpty) {
+                                    return "Please enter a number";
+                                  }
+                                  else if (int.tryParse(value) == null) {
+                                    return "Please enter a valid integer as passenger capacity";
+                                  }
+                                  else if (int.tryParse(value) ! < 0 &&
+                                      int.tryParse(value) ! > 15) {
+                                    return "Please enter a plausible passenger capacity";
+                                  }
+                                }
+                                return null;
+                              },
+                              onSaved: (value) {
+                                passengerCapacity = value ?? '';
+                              },
+                            ),
+                            SizedBox(height: 15),
+                            Center(
+                                child: Text(
+                                    "Smoking Preference", style: kFillerText)),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: smokingPreference.map<Widget>((option) {
+                                return Padding(
+                                  //const EdgeInsets.symmetric(horizontal: 17.0)
+                                  padding: Dimen.textboxPadding,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [Radio<String>(
+                                        value: option,
+                                        groupValue: selectedSmoking,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            selectedSmoking = value!;
+                                          });
+                                        }
+                                    ),
+                                      Text(option, style: kFillerTextSmall),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            SizedBox(height: 15),
+                            Center(
+                                child: Text("Your Smoking Information",
+                                    style: kFillerText)),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: smokingSituation.map<Widget>((option) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 17.0),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [Radio<String>(
+                                        value: option,
+                                        groupValue: yourSmoking,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            yourSmoking = value!;
+                                          });
+                                        }
+                                    ),
+                                      Text(option),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            SizedBox(height: 15),
+                            Center(
+                                child: Text("Car Type", style: kFillerText)),
+                            Padding(
+                              padding: Dimen.cardMargins,
+                              child: FormField<String>(
+                                validator: (value) {
+                                  value = driverExperience;
+                                  if (value == null) {
+                                    return 'Please select an option';
+                                  }
+                                  return null;
+                                },
+                                builder: (field) {
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment
+                                        .start,
+                                    children: [
+                                      InputDecorator(
+                                        decoration: InputDecoration(
+                                          contentPadding: Dimen.cardMargins,
+                                          border: InputBorder.none,
+                                          errorText: field.errorText,
+                                        ),
+                                        child: ExpansionTile(
+                                          title:
+                                          Center(child: Text(
+                                            selectedCarType == null
+                                                ? "Select Car Type"
+                                                : "$selectedCarType",
+                                          ),
 
-                            final pass_info = await FirebaseFirestore.instance
-                                .collection('users').doc(user.uid);
-                                final info = await pass_info.get();
-                                if(info.exists) {
-                                final passengerInfo = info.data()!;
-                                debugPrint("Entry 1");
-                                if(passengerInfo.containsKey("driver_information") && passengerInfo["passenger_information"] is Map) {
-                                debugPrint("Element");
-                                await pass_info.update({
-                                'driver_information': {'latitude': finalLat,
-                                  'longitude': finalLng,
-                                  'luggage_capacity': luggageCapacity,
-                                  'gender_preference': selectedGender,
-                                  'passenger_gender': yourGender,
-                                  'preferred_rating': selectedRating,
-                                  'passenger_rating': Random().nextInt(5) + 1,
-                                  'tip': reqTipAmount,
-                                  'requested_driver_exp': driverExperience,
-                                  'smoking_preference': selectedSmoking,
-                                  'smoking_situation': yourSmoking,
-                                  'car_type': selectedCarType,
-                                  'driving_experience': driverExperience,
-                                }},);
-                                } else {
-                                  debugPrint("Entry 2");
-                                  await pass_info.set({
-                                    'driver_information': {
-                                      'latitude': finalLat,
-                                      'longitude': finalLng,
-                                      'luggage_capacity': luggageCapacity,
-                                      'gender_preference': selectedGender,
-                                      'passenger_gender': yourGender,
-                                      'preferred_rating': selectedRating,
-                                      'passenger_rating': Random().nextInt(5) + 1,
-                                      'tip': reqTipAmount,
-                                      'requested_driver_exp': driverExperience,
-                                      'smoking_preference': selectedSmoking,
-                                      'smoking_situation': yourSmoking,
-                                      'car_type': selectedCarType,
-                                      'driving_experience': driverExperience,
+                                          ),
+                                          collapsedBackgroundColor: AppColors
+                                              .fillBox,
+                                          backgroundColor: AppColors.fillBox,
+                                          collapsedShape: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                                12),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                          shape: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                                12),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                          onExpansionChanged: (bool expand) {
+                                            setState(() {
+                                              //isExpandedCarType = expand;
+                                              isExpanded = expand;
+                                            });
+                                          },
+                                          children: carTypes.map((element) {
+                                            return RadioListTile<String>(
+                                              title: Text(element,
+                                                  style: kFillerTextSmall),
+                                              value: element,
+                                              groupValue: selectedCarType,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  selectedCarType = value;
+                                                  field.didChange(value);
+                                                });
+                                                setState(() {
+                                                  //isExpandedCarType = false;
+                                                  isExpanded = false;
+                                                });
+                                              },
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                      SizedBox(height: 15),
+                                      Center(
+                                          child: Text(
+                                              "Driver Experience - In Years",
+                                              style: kFillerText)),
+                                      SizedBox(height: 5),
+                                      TextFormField(
+                                        initialValue: driverExperience,
+                                        decoration: InputDecoration(
+                                          filled: true,
+                                          fillColor: AppColors.fillBox,
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                                12),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                          contentPadding: Dimen.textboxPadding,
+                                        ),
+                                        validator: (value) {
+                                          if (value != null) {
+                                            if (value.isEmpty) {
+                                              return "Please enter a number";
+                                            }
+                                            else
+                                            if (int.tryParse(value) == null) {
+                                              return "Please enter a valid integer as driver experience";
+                                            }
+                                            else
+                                            if (int.tryParse(value) ! < 0 &&
+                                                int.tryParse(value) ! > 70) {
+                                              return "Please enter a plausible driver experience";
+                                            }
+                                          }
+                                          return null;
+                                        },
+                                        onSaved: (value) {
+                                          driverExperience = value ?? '';
+                                        },
+                                      ),
+                                      SizedBox(height: 15),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Center(
+                              child: SizedBox(
+                                width: 222,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    setState(() {
+                                      hasSubmitted =
+                                      true; // Set flag when button is clicked
+                                    });
+                                    if (_formKey.currentState!.validate()) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text('Processing Data')),
+                                      );
+                                      _formKey.currentState!.save();
+                                      try {
+                                        final user = FirebaseAuth.instance
+                                            .currentUser;
+                                        if (user == null) throw Exception('User not authenticated');
+                                        final pass_info = await FirebaseFirestore
+                                            .instance
+                                            .collection('users').doc(user.uid);
+                                        final info = await pass_info.get();
+                                        if (info.exists) {
+                                          final passengerInfo = info.data()!;
+                                          debugPrint("Entry 1");
+                                          if (passengerInfo.containsKey(
+                                              "driver_information") &&
+                                              passengerInfo["passenger_information"] is Map) {
+                                            debugPrint("Element");
+                                            await pass_info.update({
+                                              'driver_information': {
+                                                'location_query': _locationController.text,
+                                                'latitude': finalLat,
+                                                'longitude': finalLng,
+                                                'luggage_capacity': luggageCapacity,
+                                                'gender_preference': selectedGender,
+                                                'passenger_gender': yourGender,
+                                                'passenger_capacity': passengerCapacity,
+                                                'preferred_rating': selectedRating,
+                                                'passenger_rating': Random()
+                                                    .nextInt(5) + 1,
+                                                'tip': reqTipAmount,
+                                                'requested_driver_exp': driverExperience,
+                                                'smoking_preference': selectedSmoking,
+                                                'smoking_situation': yourSmoking,
+                                                'car_type': selectedCarType,
+                                                'driving_experience': driverExperience,
+                                              }},);
+                                          } else {
+                                            debugPrint("Entry 2");
+                                            await pass_info.set({
+                                              'driver_information': {
+                                                'location_query': _locationController.text,
+                                                'latitude': finalLat,
+                                                'longitude': finalLng,
+                                                'luggage_capacity': luggageCapacity,
+                                                'gender_preference': selectedGender,
+                                                'passenger_capacity': passengerCapacity,
+                                                'passenger_gender': yourGender,
+                                                'preferred_rating': selectedRating,
+                                                'passenger_rating': Random()
+                                                    .nextInt(5) + 1,
+                                                'tip': reqTipAmount,
+                                                'requested_driver_exp': driverExperience,
+                                                'smoking_preference': selectedSmoking,
+                                                'smoking_situation': yourSmoking,
+                                                'car_type': selectedCarType,
+                                                'driving_experience': driverExperience,
+                                              }
+                                            }, SetOptions(merge: true));
+                                          }
+                                        }
+
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(content: Text(
+                                              'Preferences saved successfully!')),);
+                                      } catch (e) {
+                                        debugPrint(
+                                            'Failed to save: ${e.toString()}');
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(content: Text(
+                                              'Failed to save: ${e
+                                                  .toString()}')),);
+                                      }
+                                    } else {
+                                      String errorMessage = 'Try again with valid entries';
+                                      _showDialog('Form Error', errorMessage);
                                     }
-                                  }, SetOptions(merge: true));
-                                }
-                                }
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Preferences saved successfully!')),);
-
-
-                            } catch (e) {
-                              debugPrint('Failed to save: ${e.toString()}');
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Failed to save: ${e.toString()}')),);
-                            }
-                          } else {
-                            String errorMessage = 'Try again with valid entries';
-                            _showDialog('Form Error', errorMessage);
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.buttonBackground,
-                          padding: Dimen.buttonPadding,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100),
-                          ),
-                        ),
-                        child: Text(
-                          'Save Preferences',
-                          style: kButtonText,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            }),
-            ),
-        ]),
-              ),
-              ),
-  ),
-  );
-}
-
-
-
-
-
-
-
-
-}
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.buttonBackground,
+                                    padding: Dimen.buttonPadding,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(100),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Save Preferences',
+                                    style: kButtonText,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }),
+                ),
+              ]),
+          ),
+        ),
+        ),
+      );
+    }
+  }
