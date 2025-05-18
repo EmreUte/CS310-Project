@@ -21,6 +21,9 @@ class AuthService {
     try {
       UserCredential result = await _auth.signInWithEmailAndPassword(email: email, password: password);
       User? user = result.user;
+      if (user != null) {
+        await DatabaseService(uid: user.uid).setOnlineStatus(true);
+      }
       return _userFromFirebaseUser(user);
     }
     catch(e) {
@@ -46,6 +49,10 @@ class AuthService {
   // sign out
   Future signOut() async {
     try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        await DatabaseService(uid: user.uid).setOnlineStatus(false); 
+      }
       return await _auth.signOut();
     }
     catch(e) {

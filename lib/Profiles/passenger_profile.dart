@@ -10,6 +10,8 @@ import '../RideMonitoring/finding_your_ride.dart';
 import '../digital_payments/digital_payments_page.dart';
 import '../services/database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../maps/available_drivers.dart';
+
 
 
 class PassengerProfile extends StatefulWidget {
@@ -73,13 +75,10 @@ class _PassengerProfileState extends State<PassengerProfile> {
                 const SizedBox(height: 30),
                 _buildButton(context, "Ride History", const RideHistoryPage()),
                 const SizedBox(height: 30),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.asset(
-                    'assets/map.png',
-                    height: 300,
-                    fit: BoxFit.cover,
-                  ),
+                Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  height: 330, // or adjust to desired height
+                  child: const AvailableDrivers(),
                 ),
               ],
             ),

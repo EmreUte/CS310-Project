@@ -35,11 +35,16 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       // Sign in with Firebase Auth
-      await FirebaseAuth.instance
+      UserCredential cred = await FirebaseAuth.instance
           .signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(cred.user!.uid)
+          .update({'isOnline': true});
+
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? 'Login failed')),

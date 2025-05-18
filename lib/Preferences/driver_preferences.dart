@@ -60,6 +60,7 @@ class _DriverPreferencesScreenState extends State<DriverPreferencesScreen>
       //Stadia Maps
       //Uri.parse("https://api.stadiamaps.com/geocoding/v1/search?text=$query&api_key=ca885b1b-d8dd-44b4-9036-d78e3405996c&countrycodes=tr"),
 
+
     );
 
     if (response.statusCode == 200) {

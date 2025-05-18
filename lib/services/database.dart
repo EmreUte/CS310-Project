@@ -32,20 +32,22 @@ class DatabaseService {
 
   // Update user data in Firestore
   Future updateUserData(
-    String name,
-    String email,
-    String phone,
-    String plateNumber,
-    String userType,
-    int cardCount,
-  ) async {
+      String name,
+      String email,
+      String phone,
+      String plateNumber,
+      String userType,
+      int cardCount,
+      ) async {
       return await userCollection.doc(uid).set({
         'name': name,
         'email': email,
         'phone': phone,
         'plateNumber': plateNumber,
         'userType': userType,
+        'isOnline': true,
         'cardCount': cardCount,
+
       });
   }
 
@@ -57,6 +59,13 @@ class DatabaseService {
        'cardCount': cardCount + 1,
     });
   }
+
+  Future setOnlineStatus(bool status) async {
+    return await userCollection.doc(uid).set({
+      'isOnline': status,
+    }, SetOptions(merge: true));
+  }
+
 
   // gift list from snapshot
   Future addCreditCard(CreditCard card) async {
