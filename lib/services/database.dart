@@ -32,21 +32,22 @@ class DatabaseService {
 
   // Update user data in Firestore
   Future updateUserData(
-    String name,
-    String email,
-    String phone,
-    String plateNumber,
-    String userType,
-    int cardID,
-  ) async {
+      String name,
+      String email,
+      String phone,
+      String plateNumber,
+      String userType,
+      int cardCount,
+      ) async {
       return await userCollection.doc(uid).set({
         'name': name,
         'email': email,
         'phone': phone,
         'plateNumber': plateNumber,
         'userType': userType,
-        'cardID': cardID,
         'isOnline': true,
+        'cardCount': cardCount,
+
       });
   }
 

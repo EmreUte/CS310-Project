@@ -7,7 +7,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math' as math;
 import '../services/ride_session_service.dart';
 
-
 class RoadTripMap extends StatefulWidget {
   final String passengerId;
   final String driverId;
@@ -23,35 +22,23 @@ class RoadTripMap extends StatefulWidget {
 }
 
 class _RoadTripMapState extends State<RoadTripMap> {
-
-  // Default center on Istanbul
   final LatLng defaultMapCenter = LatLng(41.0082, 28.9784);
-
-  // Map controller for programmatic control
   final MapController _mapController = MapController();
-
-  // Start and end positions
   LatLng? startPosition;
   LatLng? destinationPosition;
-
-  // Current car position for animation
   LatLng? currentCarPosition;
-
-  // Animation control
   Timer? _animationTimer;
   double _progress = 0.0;
   final int _animationDurationSeconds = 5;
-  final int _animationSteps = 60; // 60 frames per second for 5 seconds = 300 steps
+  final int _animationSteps = 60;
   bool _isAnimationComplete = false;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    print('🚀 RoadTripMap initState called');
     _loadPositions();
   }
-
 
   @override
   void dispose() {
@@ -65,162 +52,85 @@ class _RoadTripMapState extends State<RoadTripMap> {
       _isLoading = true;
     });
 
-    debugPrint('🟢 Entered _loadPositions');
-
-    debugPrint('🚗 Starting _loadPositions...');
-    debugPrint('Passenger ID: ${widget.passengerId}');
-    debugPrint('Driver ID: ${widget.driverId}');
-
     try {
-      // 1. Load destination from ride_sessions
       final rideSession = RideSessionService(
         passengerId: widget.passengerId,
         driverId: widget.driverId,
       );
 
-      final dest = await rideSession.getDestination().catchError((e) {
-        debugPrint('❌ Error fetching destination from ride session: $e');
-      });
-
+      final dest = await rideSession.getDestination().catchError((e) {});
       if (dest != null) {
         destinationPosition = dest;
-        debugPrint('✅ Loaded destination from RideSessionService: $dest');
-      } else {
-        debugPrint('⚠️ Destination is null in ride session.');
       }
 
-      // 2. Get current Firebase user
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
-        debugPrint('❌ No authenticated user found.');
         setState(() => _isLoading = false);
         return;
       }
-
-      debugPrint('👤 Current user UID: ${currentUser.uid}');
 
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(currentUser.uid)
           .get()
-          .catchError((e) {
-        debugPrint('❌ Error fetching user document: $e');
-      });
+          .catchError((e) {});
 
-      if (!userDoc.exists) {
-        debugPrint('❌ User document does not exist in Firestore.');
-      }
+      final passengerDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.passengerId)
+          .get();
 
-      final userData = userDoc.data();
-      if (userData == null) {
-        debugPrint('❌ User data is null.');
-      } else {
-        final userType = userData['userType'];
-        debugPrint('👤 User type: $userType');
+      if (passengerDoc.exists) {
+        final passengerData = passengerDoc.data()?['passenger_information'];
+        final lat = passengerData?['latitude'];
+        final lng = passengerData?['longitude'];
 
-        if (userType == 'Passenger' &&
-            userData.containsKey('passenger_information')) {
-          final info = userData['passenger_information'];
-          final lat = info['latitude'];
-          final lng = info['longitude'];
-
-          if (lat != null && lng != null) {
-            startPosition = LatLng(double.parse(lat.toString()), double.parse(lng.toString()));
-            debugPrint('📍 Loaded start position (Passenger): $startPosition');
-          } else {
-            debugPrint('⚠️ Passenger coordinates are null.');
-          }
-
-        } else if (userType == 'Driver' &&
-            userData.containsKey('driver_information')) {
-          final info = userData['driver_information'];
-          final lat = info['latitude'];
-          final lng = info['longitude'];
-
-          if (lat != null && lng != null) {
-            startPosition = LatLng(double.parse(lat.toString()), double.parse(lng.toString()));
-            debugPrint('📍 Loaded start position (Driver): $startPosition');
-          } else {
-            debugPrint('⚠️ Driver coordinates are null.');
-          }
-        } else {
-          debugPrint('⚠️ Unknown or missing userType.');
+        if (lat != null && lng != null) {
+          startPosition = LatLng(double.parse(lat.toString()), double.parse(lng.toString()));
         }
       }
 
-      // 3. Initialize car position
       if (startPosition != null) {
         currentCarPosition = startPosition;
-        debugPrint('🚘 Current car position initialized.');
-      } else {
-        debugPrint('❌ startPosition is null — cannot animate.');
       }
 
-      // 4. Finish loading
       setState(() => _isLoading = false);
 
-
-      // 5. Center map and animate if both positions are valid
       if (startPosition != null && destinationPosition != null) {
-        debugPrint('🗺️ Centering map and starting animation...');
         _centerMapOnRoute();
         Future.delayed(const Duration(milliseconds: 500), _startAnimation);
-      } else {
-        debugPrint('⚠️ Map will not animate. One or both positions are null.');
       }
-
     } catch (e) {
-      debugPrint('❌ Unexpected error in _loadPositions: $e');
       setState(() => _isLoading = false);
     }
   }
 
-
-
   void _centerMapOnRoute() {
     if (startPosition == null || destinationPosition == null) return;
-
-    // Calculate the center point between start and destination
     final centerLat = (startPosition!.latitude + destinationPosition!.latitude) / 2;
     final centerLng = (startPosition!.longitude + destinationPosition!.longitude) / 2;
-
-    // Calculate appropriate zoom level
     final latDiff = (startPosition!.latitude - destinationPosition!.latitude).abs();
     final lngDiff = (startPosition!.longitude - destinationPosition!.longitude).abs();
     final maxDiff = latDiff > lngDiff ? latDiff : lngDiff;
-
-    // Simple formula to calculate zoom level based on distance
-    // Adjust the divisor to get appropriate zoom for your specific use case
     final zoom = maxDiff < 0.01 ? 14.0 : maxDiff < 0.05 ? 12.0 : 10.0;
-
     _mapController.move(LatLng(centerLat, centerLng), zoom);
   }
 
   void _startAnimation() {
     if (startPosition == null || destinationPosition == null) return;
-
-    // Calculate time per step based on total duration and steps
     final stepDuration = Duration(
-        milliseconds: (_animationDurationSeconds * 1000) ~/ _animationSteps
-    );
+        milliseconds: (_animationDurationSeconds * 1000) ~/ _animationSteps);
 
     _animationTimer = Timer.periodic(stepDuration, (timer) {
       setState(() {
-        // Increment progress
         _progress += 1.0 / _animationSteps;
-
         if (_progress >= 1.0) {
           _progress = 1.0;
           _isAnimationComplete = true;
           timer.cancel();
         }
-
-        // Interpolate between start and destination
         currentCarPosition = _interpolatePosition(
-            startPosition!,
-            destinationPosition!,
-            _progress
-        );
+            startPosition!, destinationPosition!, _progress);
       });
     });
   }
@@ -232,22 +142,25 @@ class _RoadTripMapState extends State<RoadTripMap> {
     );
   }
 
-  // Calculate rotation angle for the car icon to face the direction of travel
   double _calculateRotationAngle() {
     if (startPosition == null || destinationPosition == null) return 0;
-
     final dx = destinationPosition!.longitude - startPosition!.longitude;
     final dy = destinationPosition!.latitude - startPosition!.latitude;
-
     if (dx == 0 && dy == 0) return 0;
-
-    return -1 * (dx.isNegative ? 3.14159 : 0) + (dy == 0 ? 0 : (dx == 0 ? 1.5708 : dx.isNegative ? -1 : 1) * (dy.isNegative ? -1 : 1) * math.atan(dx.abs() / dy.abs()));
-
+    return -1 * (dx.isNegative ? 3.14159 : 0) +
+        (dy == 0
+            ? 0
+            : (dx == 0
+            ? 1.5708
+            : dx.isNegative
+            ? -1
+            : 1) *
+            (dy.isNegative ? -1 : 1) *
+            math.atan(dx.abs() / dy.abs()));
   }
 
   @override
   Widget build(BuildContext context) {
-    print('🚨 RoadTripMap build() called');
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: Stack(
@@ -268,7 +181,6 @@ class _RoadTripMapState extends State<RoadTripMap> {
                 urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                 userAgentPackageName: 'com.example.cs310_project',
               ),
-              // Start position marker
               if (startPosition != null)
                 MarkerLayer(
                   markers: [
@@ -280,7 +192,6 @@ class _RoadTripMapState extends State<RoadTripMap> {
                     ),
                   ],
                 ),
-              // Destination marker
               if (destinationPosition != null)
                 MarkerLayer(
                   markers: [
@@ -292,7 +203,6 @@ class _RoadTripMapState extends State<RoadTripMap> {
                     ),
                   ],
                 ),
-              // Moving car marker
               if (currentCarPosition != null)
                 MarkerLayer(
                   markers: [
@@ -307,7 +217,6 @@ class _RoadTripMapState extends State<RoadTripMap> {
                     ),
                   ],
                 ),
-              // Attribution widget
               RichAttributionWidget(
                 attributions: [
                   TextSourceAttribution(
@@ -318,8 +227,6 @@ class _RoadTripMapState extends State<RoadTripMap> {
               ),
             ],
           ),
-
-          // Loading indicator
           if (_isLoading)
             Container(
               color: Colors.white.withOpacity(0.7),
@@ -327,8 +234,6 @@ class _RoadTripMapState extends State<RoadTripMap> {
                 child: CircularProgressIndicator(),
               ),
             ),
-
-          // Progress indicator
           if (startPosition != null && destinationPosition != null)
             Positioned(
               top: 10,
@@ -351,8 +256,6 @@ class _RoadTripMapState extends State<RoadTripMap> {
                 ),
               ),
             ),
-
-          // Zoom controls
           Positioned(
             right: 10,
             bottom: 10,
@@ -384,8 +287,6 @@ class _RoadTripMapState extends State<RoadTripMap> {
               ],
             ),
           ),
-
-          // Trip status
           Positioned(
             bottom: 10,
             left: 10,

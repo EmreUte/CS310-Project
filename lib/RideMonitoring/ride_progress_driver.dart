@@ -10,7 +10,6 @@ import '../maps/road_trip_map.dart';
 import 'dart:async';
 import '../services/ride_session_service.dart';
 
-
 class RideProgressDriver extends StatefulWidget {
   @override
   _RideProgressDriverState createState() => _RideProgressDriverState();
@@ -54,7 +53,6 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
           driverId: currentUser.uid,
         );
 
-        // Reset session values 3 seconds after payment
         await sessionService.resetSessionStateAfterPayment();
 
         if (!mounted) return;
@@ -75,7 +73,6 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
     });
   }
 
-
   Future<void> _initialize() async {
     matchedPassengerId = await _getMatchedPassengerId();
     if (matchedPassengerId != null) {
@@ -85,7 +82,6 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
       _listenForPaymentStatus();
     }
   }
-
 
   Future<String?> _getMatchedPassengerId() async {
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
@@ -117,6 +113,32 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
       }, SetOptions(merge: true));
 
       setState(() => rideEnded = true);
+
+      final sessionData = await sessionRef.get();
+      final dest = sessionData.data()?['destination'];
+
+      if (dest != null) {
+        final lat = dest['lat'];
+        final lng = dest['lng'];
+
+        if (lat != null && lng != null) {
+          final userRef = FirebaseFirestore.instance.collection('users');
+
+          await userRef.doc(currentUser.uid).set({
+            'driver_information': {
+              'latitude': lat,
+              'longitude': lng,
+            }
+          }, SetOptions(merge: true));
+
+          await userRef.doc(matchedPassengerId!).set({
+            'passenger_information': {
+              'latitude': lat,
+              'longitude': lng,
+            }
+          }, SetOptions(merge: true));
+        }
+      }
 
       showDialog(
         context: context,
@@ -154,7 +176,6 @@ class _RideProgressDriverState extends State<RideProgressDriver> {
                 ? const Center(child: CircularProgressIndicator())
                 : RoadTripMap(passengerId: matchedPassengerId!, driverId: driverId),
           ),
-
           const Spacer(),
           if (!rideEnded)
             Padding(

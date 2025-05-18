@@ -13,6 +13,7 @@ import '../models/user_model.dart';
 import '../digital_payments/add_new_card.dart';
 import 'package:cs310_project/services/database.dart';
 import '../services/ride_session_service.dart';
+import 'package:intl/intl.dart';
 
 class RideProgressPassenger extends StatefulWidget {
   @override
@@ -142,7 +143,7 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
   Future<String> _getLocationName(double lat, double lng) async {
     try {
       final response = await http.get(
-        Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng'),
+        Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&addressdetails=1'),
         headers: {
           'User-Agent': 'MyRideApp/1.0 (hcancaglar99@gmail.com)',
         },
@@ -150,8 +151,15 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['display_name'] ?? 'Unknown Location';
+        final address = data['address'];
+
+        final road = address['road'] ?? '';
+        final suburb = address['suburb'] ?? '';
+
+        if (road.isEmpty && suburb.isEmpty) return 'Unknown Location';
+        return [road, suburb].where((s) => s.isNotEmpty).join(', ');
       }
+
       return 'Unknown Location';
     } catch (e) {
       return 'Unknown Location';
@@ -181,6 +189,45 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
 
   double _toRadians(double deg) => deg * (pi / 180);
 
+  Future<void> _processSuccessfulPayment(User currentUser, DatabaseService dbService) async {
+    final sessionService = RideSessionService(
+      passengerId: currentUser.uid,
+      driverId: matchedDriverId!,
+    );
+
+    await sessionService.setPaymentStatus('completed');
+    setState(() => paymentSuccess = true);
+    _showSuccessDialog();
+
+    final now = DateTime.now();
+    final formattedDate = DateFormat('dd/MM/yyyy').format(now);
+    final formattedTime = DateFormat('HH:mm').format(now);
+
+    final driverDoc = await FirebaseFirestore.instance.collection('users').doc(matchedDriverId).get();
+    final driverName = driverDoc.data()?['name'] ?? 'Unknown';
+    final plateNumber = driverDoc.data()?['plateNumber'] ?? 'Unknown';
+
+    final passengerDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
+    final passengerName = passengerDoc.data()?['name'] ?? 'Unknown';
+
+    final record = RideRecord(
+      id: '',
+      date: formattedDate,
+      time: formattedTime,
+      pickup: startLocation,
+      dropoff: endLocation,
+      amount: amount,
+      driverName: driverName,
+      passengerName: passengerName,
+      plateNumber: plateNumber,
+    );
+
+    await dbService.addRideRecord(record);
+    await DatabaseService(uid: matchedDriverId!).addRideRecord(record);
+
+    await sessionService.resetSessionStateAfterPayment();
+  }
+
   void handlePayment(MyUser user, UserModel? userdata, DatabaseService dbService) async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null || matchedDriverId == null) return;
@@ -207,7 +254,7 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
                       providers: [
                         Provider<MyUser>.value(value: user),
                         StreamProvider<UserModel?>.value(
-                          value: dbService.userData,
+                          value: DatabaseService(uid: user.uid).userData,
                           initialData: userdata,
                         ),
                       ],
@@ -215,13 +262,11 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
                     ),
                   ),
                 );
-                await _checkPaymentMethod();
-                if (hasCard) {
-                  await sessionService.setPaymentStatus('completed');
-                  setState(() => paymentSuccess = true);
-                  _showSuccessDialog();
-                  await sessionService.resetSessionStateAfterPayment();
 
+                await _checkPaymentMethod();
+
+                if (hasCard) {
+                  await _processSuccessfulPayment(currentUser, dbService);
                 }
               },
               child: const Text("Go to Wallet"),
@@ -232,9 +277,7 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
       return;
     }
 
-    await sessionService.setPaymentStatus('completed');
-    setState(() => paymentSuccess = true);
-    _showSuccessDialog();
+    await _processSuccessfulPayment(currentUser, dbService);
   }
 
   void _showSuccessDialog() {

@@ -32,9 +32,9 @@ Future<List<MatchPair>> findBestMatches({
     return sqrt(dx * dx + dy * dy);
   }
 
-  // Valid only if luggage fits and distance ≤ 0.135
+  // Valid only if luggage fits and distance ≤ 1
   bool _valid(Driver d, Passenger p) {
-    return d.luggageCapacity >= p.luggage && _distance(d, p) <= 0.135;
+    return d.luggageCapacity >= p.luggage && _distance(d, p) <= 1;
   }
 
   // Driver satisfaction: count of criteria met

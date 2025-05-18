@@ -8,11 +8,9 @@ import '../matching_calc/matching_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../services/ride_session_service.dart'; // NEW
+import '../services/ride_session_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:latlong2/latlong.dart';
-
-
 
 class FindingRideScreen extends StatefulWidget {
   @override
@@ -39,6 +37,7 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
     super.initState();
     _getUserTypeAndStartMatching();
   }
+
   Future<void> _cancelAndResetSession() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null && _userType.isNotEmpty) {
@@ -55,7 +54,6 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
     _timer?.cancel();
     if (mounted) Navigator.pop(context);
   }
-
 
   Future<String?> _getMatchedPassengerId() async {
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
@@ -96,13 +94,11 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
           _userType = userData['userType'] ?? '';
         });
 
-        // Start the matching process
         _runMatchingAlgorithm(currentUser.uid);
       } else {
         _showNoMatchFoundDialog();
       }
     } catch (e) {
-      print('Error getting user type: $e');
       _showNoMatchFoundDialog();
     }
   }
@@ -126,7 +122,6 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
               driverId: match.driver.id,
             );
 
-            // ✅ Check if there's a saved destination from tap before match
             final prefs = await SharedPreferences.getInstance();
             final lat = prefs.getDouble('pending_destination_lat');
             final lng = prefs.getDouble('pending_destination_lng');
@@ -137,10 +132,8 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
               await prefs.remove('pending_destination_lng');
             }
 
-            // ✅ Mark user as ready
             await session.setUserReady(_userType);
 
-            // ✅ Check if both are ready
             final isReady = await session.isBothReady();
             if (isReady) {
               _startProgressAnimation();
@@ -155,15 +148,11 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
 
       _showNoMatchFoundDialog();
     } catch (e) {
-      print('Error in matching algorithm: $e');
       _showNoMatchFoundDialog();
     }
   }
 
-
-
   void _showNoMatchFoundDialog() {
-    // Only cancel if _timer has been initialized
     if (mounted && (_timer?.isActive == true)) {
       _timer?.cancel();
     }
@@ -179,10 +168,9 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
             actions: [
               TextButton(
                 onPressed: () async {
-                  Navigator.of(context).pop(); // Close the dialog first
-                  await _cancelAndResetSession(); // Then pop the page with state reset
+                  Navigator.of(context).pop();
+                  await _cancelAndResetSession();
                 },
-
                 child: const Text('OK'),
               ),
             ],
@@ -191,6 +179,7 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
       }
     });
   }
+
   void _stopAnimationAndShowNoMatch() {
     _timer?.cancel();
     _sessionListener?.cancel();
@@ -206,8 +195,8 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
             actions: [
               TextButton(
                 onPressed: () async {
-                  Navigator.of(context).pop(); // Close dialog
-                  await _cancelAndResetSession(); // Pop page and reset state
+                  Navigator.of(context).pop();
+                  await _cancelAndResetSession();
                 },
                 child: const Text('OK'),
               ),
@@ -218,12 +207,10 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
     });
   }
 
-
   void _startProgressAnimation() {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
 
-    // Get session ID
     final isPassenger = _userType == 'Passenger';
     final sessionIdFuture = isPassenger ? _getMatchedDriverId() : _getMatchedPassengerId();
 
@@ -233,7 +220,6 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
       final driverId = isPassenger ? otherUserId : currentUser.uid;
       final sessionId = 'session_${passengerId}_$driverId';
 
-      // Setup listener
       _sessionListener = FirebaseFirestore.instance
           .collection('ride_sessions')
           .doc(sessionId)
@@ -250,7 +236,6 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
         }
       });
 
-      // Start animation
       _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
         if (_currentStep < steps.length - 1) {
           setState(() => _currentStep++);
@@ -258,7 +243,6 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
           _timer?.cancel();
           _sessionListener?.cancel();
 
-          // Navigate to the appropriate screen
           if (_userType == 'Driver') {
             Navigator.pushNamed(context, '/ride_progress_driver');
           } else if (_userType == 'Passenger') {
@@ -270,7 +254,6 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
       });
     });
   }
-
 
   @override
   void dispose() {
@@ -296,12 +279,8 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryText),
           onPressed: _cancelAndResetSession,
-
         ),
-        title: Text(
-          "Find Your Ride",
-          style: kAppBarText,
-        ),
+        title: Text("Find Your Ride", style: kAppBarText),
       ),
       body: Column(
         children: [
@@ -326,10 +305,7 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
                       color: _getStepColor(index),
                       borderRadius: BorderRadius.circular(100),
                     ),
-                    child: Text(
-                      steps[index],
-                      style: const TextStyle(fontSize: 16),
-                    ),
+                    child: Text(steps[index], style: const TextStyle(fontSize: 16)),
                   ),
                 );
               },
@@ -342,24 +318,18 @@ class _FindingRideScreenState extends State<FindingRideScreen> {
               width: MediaQuery.of(context).size.width * 0.4,
               height: MediaQuery.of(context).size.width * 0.15,
               child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.buttonBackground,
-                      padding: Dimen.buttonPadding,
-                      shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-                onPressed: _cancelAndResetSession,
-
-                child: Center(
-                      child: Text(
-                              'Cancel',
-                              style: kButtonText,
-                      ),
-                    ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.buttonBackground,
+                  padding: Dimen.buttonPadding,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
+                onPressed: _cancelAndResetSession,
+                child: Center(child: Text('Cancel', style: kButtonText)),
               ),
+            ),
+          ),
           SizedBox(height: MediaQuery.of(context).size.height * 0.10),
         ],
       ),
