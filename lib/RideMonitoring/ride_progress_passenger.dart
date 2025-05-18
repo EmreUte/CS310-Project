@@ -155,9 +155,17 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
 
         final road = address['road'] ?? '';
         final suburb = address['suburb'] ?? '';
+        final neighbourhood = address['neighbourhood'] ?? '';
+        final city = address['city'] ?? '';
+        final fallback = address['display_name'] ?? '';
 
-        if (road.isEmpty && suburb.isEmpty) return 'Unknown Location';
-        return [road, suburb].where((s) => s.isNotEmpty).join(', ');
+        final full = [road, suburb, neighbourhood, city]
+            .where((s) => s.isNotEmpty)
+            .join(', ');
+
+        final location = full.isNotEmpty ? full : fallback;
+
+        return location.length <= 12 ? location : '${location.substring(0, 12)}...';
       }
 
       return 'Unknown Location';
@@ -165,6 +173,8 @@ class _RideProgressPassengerState extends State<RideProgressPassenger> {
       return 'Unknown Location';
     }
   }
+
+
 
   Map<String, String> _calculateTripDetails(double startLat, double startLng, double endLat, double endLng) {
     const R = 6371.0;
