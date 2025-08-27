@@ -7,8 +7,9 @@ import '../questions_page.dart';
 
 class QuestionBlock extends StatelessWidget {
   final String question;
+  final String answer;
 
-  const QuestionBlock({super.key, required this.question});
+  const QuestionBlock({super.key, required this.question, required this.answer});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +28,7 @@ class QuestionBlock extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => QuestionScreen(question),
+                builder: (context) => QuestionScreen(question, answer),
               ),
             );
           },

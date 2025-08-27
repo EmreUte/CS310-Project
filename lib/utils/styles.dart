@@ -20,6 +20,12 @@ final kButtonText = GoogleFonts.roboto(
     fontSize: 20.0
 );
 
+final kText = GoogleFonts.roboto(
+    color: Colors.black,
+    fontWeight: FontWeight.w500,
+    fontSize: 18.0
+);
+
 final kFillerText = GoogleFonts.roboto(
     color: Colors.black,
     fontWeight: FontWeight.w400,
